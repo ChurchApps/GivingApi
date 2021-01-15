@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS `fundDonations`;
+
+CREATE TABLE `fundDonations` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `churchId` int(11) DEFAULT NULL,
+  `donationId` int(11) DEFAULT NULL,
+  `fundId` int(11) DEFAULT NULL,
+  `amount` double DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=245 DEFAULT CHARSET=latin1;
