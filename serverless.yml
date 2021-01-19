@@ -3,10 +3,9 @@ service: giving-api
 provider:
  name: aws
  runtime: nodejs12.x
- memorySize: 128
+ memorySize: 512
  timeout: 10
  region: us-east-2
-
 
 functions:
  api:
