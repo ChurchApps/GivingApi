@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { Donation, DonationSummary } from "../models";
-import { DateTimeHelper } from "../helpers"
+import { ArrayHelper, DateTimeHelper } from "../helpers"
 
 @injectable()
 export class DonationRepository {
@@ -62,6 +62,10 @@ export class DonationRepository {
             + " AND d.donationDate BETWEEN ? AND ?"
             + " GROUP BY week(d.donationDate, 0), f.name"
             + " ORDER BY week(d.donationDate, 0), f.name";
+        console.log(churchId);
+        console.log(sDate);
+
+        console.log(eDate);
         return DB.query(sql, [churchId, sDate, eDate]);
     }
 
@@ -78,17 +82,19 @@ export class DonationRepository {
         return result;
     }
 
-
-    public convertToSummary(churchId: number, data: any) {
-        const result: DonationSummary = { week: data.week, totalAmount: data.totalAmount };
-
-        if (data.fundName !== undefined) result.fund = { name: data.fundName };
-        return result;
-    }
-
     public convertAllToSummary(churchId: number, data: any[]) {
+        console.log("data");
+        console.log(JSON.stringify(data));
         const result: DonationSummary[] = [];
-        data.forEach(d => result.push(this.convertToSummary(churchId, d)));
+        data.forEach(d => {
+            const week = d.week;
+            let weekRow: DonationSummary = ArrayHelper.getOne(result, "week", week);
+            if (weekRow === null) {
+                weekRow = { week, donations: [] }
+                result.push(weekRow);
+            }
+            weekRow.donations.push({ fund: d.fund, totalAmount: d.totalAmount });
+        });
         return result;
     }
 
