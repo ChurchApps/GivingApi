@@ -54,14 +54,15 @@ export class DonationRepository {
     public async loadSummary(churchId: number, startDate: Date, endDate: Date) {
         const sDate = DateTimeHelper.toMysqlDate(startDate);
         const eDate = DateTimeHelper.toMysqlDate(endDate);
-        const sql = "SELECT week(d.donationDate, 0) as week, SUM(fd.amount) as totalAmount, f.name as fundName"
+        // const sql = "SELECT week(d.donationDate, 0) as week, SUM(fd.amount) as totalAmount, f.name as fundName"
+        const sql = "SELECT STR_TO_DATE(concat(year(d.donationDate), ' ', week(d.donationDate, 0), ' Sunday'), '%X %V %W') AS week, SUM(fd.amount) as totalAmount, f.name as fundName"
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
             + " INNER JOIN funds f on f.id = fd.fundId"
             + " WHERE d.churchId=?"
             + " AND d.donationDate BETWEEN ? AND ?"
-            + " GROUP BY week(d.donationDate, 0), f.name"
-            + " ORDER BY week(d.donationDate, 0), f.name";
+            + " GROUP BY year(d.donationDate), week(d.donationDate, 0), f.name"
+            + " ORDER BY year(d.donationDate), week(d.donationDate, 0), f.name";
         console.log(churchId);
         console.log(sDate);
 
@@ -93,7 +94,7 @@ export class DonationRepository {
                 weekRow = { week, donations: [] }
                 result.push(weekRow);
             }
-            weekRow.donations.push({ fund: d.fund, totalAmount: d.totalAmount });
+            weekRow.donations.push({ fund: { name: d.fundName }, totalAmount: d.totalAmount });
         });
         return result;
     }
