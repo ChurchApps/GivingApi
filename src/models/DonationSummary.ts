@@ -1,8 +1,6 @@
-import { Fund } from "./";
+import { DonationSummaryDonation } from "./DonationSummaryDonation";
 
 export class DonationSummary {
-    public week?: number;
-    public totalAmount?: number;
-
-    public fund?: Fund;
+    public week: number;
+    public donations?: DonationSummaryDonation[]
 }

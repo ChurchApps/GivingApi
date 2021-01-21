@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { Donation, DonationSummary } from "../models";
-import { DateTimeHelper } from "../helpers"
+import { ArrayHelper, DateTimeHelper } from "../helpers"
 
 @injectable()
 export class DonationRepository {
@@ -54,14 +54,15 @@ export class DonationRepository {
     public async loadSummary(churchId: number, startDate: Date, endDate: Date) {
         const sDate = DateTimeHelper.toMysqlDate(startDate);
         const eDate = DateTimeHelper.toMysqlDate(endDate);
-        const sql = "SELECT week(d.donationDate, 0) as week, SUM(fd.amount) as totalAmount, f.name as fundName"
+        // const sql = "SELECT week(d.donationDate, 0) as week, SUM(fd.amount) as totalAmount, f.name as fundName"
+        const sql = "SELECT STR_TO_DATE(concat(year(d.donationDate), ' ', week(d.donationDate, 0), ' Sunday'), '%X %V %W') AS week, SUM(fd.amount) as totalAmount, f.name as fundName"
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
             + " INNER JOIN funds f on f.id = fd.fundId"
             + " WHERE d.churchId=?"
             + " AND d.donationDate BETWEEN ? AND ?"
-            + " GROUP BY week(d.donationDate, 0), f.name"
-            + " ORDER BY week(d.donationDate, 0), f.name";
+            + " GROUP BY year(d.donationDate), week(d.donationDate, 0), f.name"
+            + " ORDER BY year(d.donationDate), week(d.donationDate, 0), f.name";
         return DB.query(sql, [churchId, sDate, eDate]);
     }
 
@@ -78,17 +79,17 @@ export class DonationRepository {
         return result;
     }
 
-
-    public convertToSummary(churchId: number, data: any) {
-        const result: DonationSummary = { week: data.week, totalAmount: data.totalAmount };
-
-        if (data.fundName !== undefined) result.fund = { name: data.fundName };
-        return result;
-    }
-
     public convertAllToSummary(churchId: number, data: any[]) {
         const result: DonationSummary[] = [];
-        data.forEach(d => result.push(this.convertToSummary(churchId, d)));
+        data.forEach(d => {
+            const week = d.week;
+            let weekRow: DonationSummary = ArrayHelper.getOne(result, "week", week);
+            if (weekRow === null) {
+                weekRow = { week, donations: [] }
+                result.push(weekRow);
+            }
+            weekRow.donations.push({ fund: { name: d.fundName }, totalAmount: d.totalAmount });
+        });
         return result;
     }
 
