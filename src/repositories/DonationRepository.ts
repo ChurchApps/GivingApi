@@ -63,10 +63,6 @@ export class DonationRepository {
             + " AND d.donationDate BETWEEN ? AND ?"
             + " GROUP BY year(d.donationDate), week(d.donationDate, 0), f.name"
             + " ORDER BY year(d.donationDate), week(d.donationDate, 0), f.name";
-        console.log(churchId);
-        console.log(sDate);
-
-        console.log(eDate);
         return DB.query(sql, [churchId, sDate, eDate]);
     }
 
@@ -84,8 +80,6 @@ export class DonationRepository {
     }
 
     public convertAllToSummary(churchId: number, data: any[]) {
-        console.log("data");
-        console.log(JSON.stringify(data));
         const result: DonationSummary[] = [];
         data.forEach(d => {
             const week = d.week;
