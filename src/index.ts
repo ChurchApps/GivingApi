@@ -1,4 +1,4 @@
-import { init } from './app';
+import { init } from './App';
 import { Pool } from './apiBase/pool';
 const port = process.env.SERVER_PORT;
 
