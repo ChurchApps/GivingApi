@@ -2,6 +2,7 @@ import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } f
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { DonationBatch } from "../models"
+import { Permissions } from '../helpers/Permissions'
 
 @controller("/donationbatches")
 export class DonationBatchController extends GivingBaseController {
@@ -9,7 +10,7 @@ export class DonationBatchController extends GivingBaseController {
     @httpGet("/:id")
     public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Donations", "View Summary")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
             else {
                 const data = await this.repositories.donationBatch.load(au.churchId, id);
                 return this.repositories.donationBatch.convertToModel(au.churchId, data);
@@ -20,7 +21,7 @@ export class DonationBatchController extends GivingBaseController {
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Donations", "View Summary")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
             else {
                 const data = await this.repositories.donationBatch.loadAll(au.churchId);
                 return this.repositories.donationBatch.convertAllToModel(au.churchId, data);
@@ -31,7 +32,7 @@ export class DonationBatchController extends GivingBaseController {
     @httpPost("/")
     public async save(req: express.Request<{}, {}, DonationBatch[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Donations", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
             else {
                 const promises: Promise<DonationBatch>[] = [];
                 req.body.forEach(donationbatch => { donationbatch.churchId = au.churchId; promises.push(this.repositories.donationBatch.save(donationbatch)); });
@@ -44,7 +45,7 @@ export class DonationBatchController extends GivingBaseController {
     @httpDelete("/:id")
     public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Donations", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
             else await this.repositories.donationBatch.delete(au.churchId, id);
         });
     }
