@@ -10,7 +10,7 @@ const init = async () => {
   const givingTables: { title: string, file: string }[] = [
     { title: "Funds", file: "funds.mysql" },
     { title: "Donations", file: "donations.mysql" },
-    { title: "Fund Donations", file: "funddonations.mysql" },
+    { title: "Fund Donations", file: "fundDonations.mysql" },
     { title: "Donation Batches", file: "donationBatches.mysql" },
   ];
 
