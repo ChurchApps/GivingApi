@@ -1,10 +1,10 @@
 import { Fund } from "./"
 
 export class Donation {
-    public id?: number;
-    public churchId?: number;
-    public batchId?: number;
-    public personId?: number;
+    public id?: string;
+    public churchId?: string;
+    public batchId?: string;
+    public personId?: string;
     public donationDate?: Date;
     public amount?: number;
     public method?: string;

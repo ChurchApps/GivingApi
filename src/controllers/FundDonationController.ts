@@ -8,7 +8,7 @@ import { Permissions } from '../helpers/Permissions'
 export class FundDonationController extends GivingBaseController {
 
     @httpGet("/:id")
-    public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
             else return this.repositories.fundDonation.convertToModel(au.churchId, await this.repositories.fundDonation.load(au.churchId, id));
@@ -21,13 +21,13 @@ export class FundDonationController extends GivingBaseController {
             if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
             else {
                 let result;
-                if (req.query.donationId !== undefined) result = await this.repositories.fundDonation.loadByDonationId(au.churchId, parseInt(req.query.donationId.toString(), 0));
+                if (req.query.donationId !== undefined) result = await this.repositories.fundDonation.loadByDonationId(au.churchId, req.query.donationId.toString());
                 else if (req.query.fundId !== undefined) {
-                    if (req.query.startDate === undefined) result = await this.repositories.fundDonation.loadByFundId(au.churchId, parseInt(req.query.fundId.toString(), 0));
+                    if (req.query.startDate === undefined) result = await this.repositories.fundDonation.loadByFundId(au.churchId, req.query.fundId.toString());
                     else {
                         const startDate = new Date(req.query.startDate.toString());
                         const endDate = new Date(req.query.startDate.toString());
-                        result = await this.repositories.fundDonation.loadByFundIdDate(au.churchId, parseInt(req.query.fundId.toString(), 0), startDate, endDate);
+                        result = await this.repositories.fundDonation.loadByFundIdDate(au.churchId, req.query.fundId.toString(), startDate, endDate);
                     }
                 } else result = await this.repositories.fundDonation.loadAll(au.churchId);
                 return this.repositories.fundDonation.convertAllToModel(au.churchId, result);
@@ -49,7 +49,7 @@ export class FundDonationController extends GivingBaseController {
     }
 
     @httpDelete("/:id")
-    public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
             else await this.repositories.fundDonation.delete(au.churchId, au.churchId);

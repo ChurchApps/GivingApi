@@ -1,5 +1,5 @@
 export class Fund {
-    public id?: number;
-    public churchId?: number;
+    public id?: string;
+    public churchId?: string;
     public name?: string;
 }
