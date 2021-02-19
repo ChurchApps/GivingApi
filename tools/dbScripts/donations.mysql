@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `donations`;
 
 CREATE TABLE `donations` (
-  `id` char(11) NOT NULL AUTO_INCREMENT,
+  `id` char(11) NOT NULL,
   `churchId` char(11) DEFAULT NULL,
   `batchId` char(11) DEFAULT NULL,
   `personId` char(11) DEFAULT NULL,
@@ -11,4 +11,4 @@ CREATE TABLE `donations` (
   `methodDetails` varchar(50) DEFAULT NULL,
   `notes` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=255 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
