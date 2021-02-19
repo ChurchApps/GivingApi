@@ -13,11 +13,12 @@ export class DonationRepository {
     }
 
     public async create(donation: Donation) {
+        donation.id = UniqueIdHelper.shortId();
         const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
         return DB.query(
             "INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
-            [UniqueIdHelper.shortId(), donation.churchId, donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes]
-        ).then((row: any) => { donation.id = row.insertId; return donation; });
+            [donation.id, donation.churchId, donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes]
+        ).then(() => { return donation; });
     }
 
     public async update(donation: Donation) {

@@ -12,10 +12,11 @@ export class FundRepository {
     }
 
     public async create(fund: Fund) {
+        fund.id = UniqueIdHelper.shortId();
         return DB.query(
             "INSERT INTO funds (id, churchId, name, removed) VALUES (?, ?, ?, 0);",
-            [UniqueIdHelper.shortId(), fund.churchId, fund.name]
-        ).then((row: any) => { fund.id = row.insertId; return fund; });
+            [fund.id, fund.churchId, fund.name]
+        ).then(() => { return fund; });
     }
 
     public async update(fund: Fund) {

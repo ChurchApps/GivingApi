@@ -12,11 +12,12 @@ export class DonationBatchRepository {
     }
 
     public async create(donationBatch: DonationBatch) {
+        donationBatch.id = UniqueIdHelper.shortId();
         const batchDate = DateTimeHelper.toMysqlDate(donationBatch.batchDate);
         return DB.query(
             "INSERT INTO donationBatches (id, churchId, name, batchDate) VALUES (?, ?, ?, ?);",
-            [UniqueIdHelper.shortId(), donationBatch.churchId, donationBatch.name, batchDate]
-        ).then((row: any) => { donationBatch.id = row.insertId; return donationBatch; });
+            [donationBatch.id, donationBatch.churchId, donationBatch.name, batchDate]
+        ).then(() => { return donationBatch; });
     }
 
     public async update(donationBatch: DonationBatch) {

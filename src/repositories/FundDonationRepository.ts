@@ -11,10 +11,11 @@ export class FundDonationRepository {
     }
 
     public async create(fundDonation: FundDonation) {
+        fundDonation.id = UniqueIdHelper.shortId();
         return DB.query(
             "INSERT INTO fundDonations (id, churchId, donationId, fundId, amount) VALUES (?, ?, ?, ?, ?);",
-            [UniqueIdHelper.shortId(), fundDonation.churchId, fundDonation.donationId, fundDonation.fundId, fundDonation.amount]
-        ).then((row: any) => { fundDonation.id = row.insertId; return fundDonation; });
+            [fundDonation.id, fundDonation.churchId, fundDonation.donationId, fundDonation.fundId, fundDonation.amount]
+        ).then(() => { return fundDonation; });
     }
 
     public async update(fundDonation: FundDonation) {
