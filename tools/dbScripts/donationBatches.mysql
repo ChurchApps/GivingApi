@@ -1,8 +1,8 @@
 DROP TABLE IF EXISTS `donationBatches`;
 
 CREATE TABLE `donationBatches` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `churchId` int(11) DEFAULT NULL,
+  `id` char(11) NOT NULL AUTO_INCREMENT,
+  `churchId` char(11) DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
   `batchDate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)

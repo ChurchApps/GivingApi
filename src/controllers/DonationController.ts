@@ -22,7 +22,7 @@ export class DonationController extends GivingBaseController {
     }
 
     @httpGet("/:id")
-    public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
             else {
@@ -39,8 +39,8 @@ export class DonationController extends GivingBaseController {
             if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
             else {
                 let result;
-                if (req.query.batchId !== undefined) result = await this.repositories.donation.loadByBatchId(au.churchId, parseInt(req.query.batchId.toString(), 0));
-                else if (req.query.personId !== undefined) result = await this.repositories.donation.loadByPersonId(au.churchId, parseInt(req.query.personId.toString(), 0));
+                if (req.query.batchId !== undefined) result = await this.repositories.donation.loadByBatchId(au.churchId, req.query.batchId.toString());
+                else if (req.query.personId !== undefined) result = await this.repositories.donation.loadByPersonId(au.churchId, req.query.personId.toString());
                 else result = await this.repositories.donation.loadAll(au.churchId);
                 return this.repositories.donation.convertAllToModel(au.churchId, result);
             }
@@ -62,7 +62,7 @@ export class DonationController extends GivingBaseController {
     }
 
     @httpDelete("/:id")
-    public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
             else await this.repositories.donation.delete(au.churchId, id);

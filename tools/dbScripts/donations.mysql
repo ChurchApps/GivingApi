@@ -1,10 +1,10 @@
 DROP TABLE IF EXISTS `donations`;
 
 CREATE TABLE `donations` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `churchId` int(11) DEFAULT NULL,
-  `batchId` int(11) DEFAULT NULL,
-  `personId` int(11) DEFAULT NULL,
+  `id` char(11) NOT NULL AUTO_INCREMENT,
+  `churchId` char(11) DEFAULT NULL,
+  `batchId` char(11) DEFAULT NULL,
+  `personId` char(11) DEFAULT NULL,
   `donationDate` datetime DEFAULT NULL,
   `amount` double DEFAULT NULL,
   `method` varchar(50) DEFAULT NULL,

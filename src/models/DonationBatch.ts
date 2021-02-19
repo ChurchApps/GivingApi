@@ -1,6 +1,6 @@
 export class DonationBatch {
-    public id?: number;
-    public churchId?: number;
+    public id?: string;
+    public churchId?: string;
     public name?: string;
     public batchDate?: Date;
 

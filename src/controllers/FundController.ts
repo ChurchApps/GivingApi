@@ -8,7 +8,7 @@ import { Permissions } from '../helpers/Permissions'
 export class FundController extends GivingBaseController {
 
     @httpGet("/:id")
-    public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
             else return this.repositories.fund.convertToModel(au.churchId, await this.repositories.fund.load(au.churchId, id));
@@ -37,7 +37,7 @@ export class FundController extends GivingBaseController {
     }
 
     @httpDelete("/:id")
-    public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
             else await this.repositories.fund.delete(au.churchId, id);

@@ -2,20 +2,21 @@ import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { Donation, DonationSummary } from "../models";
 import { ArrayHelper, DateTimeHelper } from "../helpers"
+import { UniqueIdHelper } from "../helpers";
 
 @injectable()
 export class DonationRepository {
 
     public async save(donation: Donation) {
-        if (donation.personId === 0) donation.personId = null;
-        if (donation.id > 0) return this.update(donation); else return this.create(donation);
+        if (donation.personId === "") donation.personId = null;
+        if (UniqueIdHelper.isMissing(donation.id)) return this.create(donation); else return this.update(donation);
     }
 
     public async create(donation: Donation) {
         const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
         return DB.query(
-            "INSERT INTO donations (churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
-            [donation.churchId, donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes]
+            "INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+            [UniqueIdHelper.shortId(), donation.churchId, donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes]
         ).then((row: any) => { donation.id = row.insertId; return donation; });
     }
 
@@ -26,23 +27,23 @@ export class DonationRepository {
         return DB.query(sql, params).then(() => { return donation });
     }
 
-    public async delete(churchId: number, id: number) {
+    public async delete(churchId: string, id: string) {
         DB.query("DELETE FROM donations WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: number, id: number) {
+    public async load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM donations WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadAll(churchId: number) {
+    public async loadAll(churchId: string) {
         return DB.query("SELECT * FROM donations WHERE churchId=?;", [churchId]);
     }
 
-    public async loadByBatchId(churchId: number, batchId: number) {
+    public async loadByBatchId(churchId: string, batchId: string) {
         return DB.query("SELECT d.* FROM donations d WHERE d.churchId=? AND d.batchId=?;", [churchId, batchId]);
     }
 
-    public async loadByPersonId(churchId: number, personId: number) {
+    public async loadByPersonId(churchId: string, personId: string) {
         const sql = "SELECT d.*, f.id as fundId, f.name as fundName"
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
@@ -51,7 +52,7 @@ export class DonationRepository {
         return DB.query(sql, [churchId, personId]);
     }
 
-    public async loadSummary(churchId: number, startDate: Date, endDate: Date) {
+    public async loadSummary(churchId: string, startDate: Date, endDate: Date) {
         const sDate = DateTimeHelper.toMysqlDate(startDate);
         const eDate = DateTimeHelper.toMysqlDate(endDate);
         // const sql = "SELECT week(d.donationDate, 0) as week, SUM(fd.amount) as totalAmount, f.name as fundName"
@@ -67,19 +68,19 @@ export class DonationRepository {
     }
 
 
-    public convertToModel(churchId: number, data: any) {
+    public convertToModel(churchId: string, data: any) {
         const result: Donation = { id: data.id, batchId: data.batchId, personId: data.personId, donationDate: data.donationDate, amount: data.amount, method: data.method, methodDetails: data.methodDetails, notes: data.notes };
         if (data.fundName !== undefined) result.fund = { id: data.fundId, name: data.fundName };
         return result;
     }
 
-    public convertAllToModel(churchId: number, data: any[]) {
+    public convertAllToModel(churchId: string, data: any[]) {
         const result: Donation[] = [];
         data.forEach(d => result.push(this.convertToModel(churchId, d)));
         return result;
     }
 
-    public convertAllToSummary(churchId: number, data: any[]) {
+    public convertAllToSummary(churchId: string, data: any[]) {
         const result: DonationSummary[] = [];
         data.forEach(d => {
             const week = d.week;
