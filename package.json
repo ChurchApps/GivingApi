@@ -36,6 +36,7 @@
     "kind-of": "^6.0.3",
     "mysql": "^2.18.1",
     "reflect-metadata": "^0.1.13",
+    "stripe": "^8.137.0",
     "uuid": "^8.3.0",
     "winston": "^3.3.3",
     "winston-cloudwatch": "^2.3.2"
@@ -54,6 +55,7 @@
     "@types/kind-of": "^6.0.0",
     "@types/mysql": "^2.15.15",
     "@types/shelljs": "^0.8.8",
+    "@types/stripe": "^8.0.417",
     "@types/uuid": "^8.3.0",
     "aws-sdk": "^2.740.0",
     "fs-extra": "^9.0.1",
