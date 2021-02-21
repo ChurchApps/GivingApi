@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 export class StripeHelper {
 
     static createCheckoutSession = async (secretKey: string, amount: number, successUrl: string, cancelUrl: string) => {
+        console.log("SECRET KEY: " + secretKey);
         const stripe = StripeHelper.getStripeObj(secretKey);
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -11,7 +12,7 @@ export class StripeHelper {
                     price_data: {
                         currency: 'usd',
                         product_data: { name: 'Donation' },
-                        unit_amount: amount,
+                        unit_amount: amount * 100, // stripe wants prices in pennies
                     },
                     quantity: 1,
                 },
