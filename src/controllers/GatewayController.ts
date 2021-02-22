@@ -11,7 +11,7 @@ export class GatewayController extends GivingBaseController {
     @httpGet("/:id")
     public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
             else return this.repositories.gateway.convertToModel(au.churchId, await this.repositories.gateway.load(au.churchId, id));
         });
     }
@@ -19,7 +19,7 @@ export class GatewayController extends GivingBaseController {
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.settings.view)) return this.json({}, 401);
             else return this.repositories.gateway.convertAllToModel(au.churchId, await this.repositories.gateway.loadAll(au.churchId));
         });
     }
@@ -27,7 +27,7 @@ export class GatewayController extends GivingBaseController {
     @httpPost("/")
     public async save(req: express.Request<{}, {}, Gateway[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
             else {
                 const promises: Promise<Gateway>[] = [];
                 req.body.forEach(gateway => {
@@ -45,7 +45,7 @@ export class GatewayController extends GivingBaseController {
     @httpDelete("/:id")
     public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
             else await this.repositories.gateway.delete(au.churchId, id);
         });
     }
