@@ -31,9 +31,6 @@ export class GatewayRepository {
         DB.query("DELETE FROM gateways WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadChurchProvider(churchId: string, provider: string) {
-        return DB.query("SELECT * FROM gateways WHERE churchId=? AND provider=?;", [churchId, provider]);
-    }
 
     public async load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM gateways WHERE id=? AND churchId=?;", [id, churchId]);

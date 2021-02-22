@@ -11,7 +11,7 @@ DB_DATABASE=givingApi
 DB_USER=root
 DB_PASSWORD=
 
-ENCRYPTION_KEY=ASecretValue
+ENCRYPTION_KEY=aSecretKeyOfExactly192BitsLength
 
 JWT_SECRET_KEY=this is a test key that is a sentence
 JWT_EXPIRATION=2 days

@@ -2,6 +2,7 @@ import { controller, httpPost, interfaces } from "inversify-express-utils";
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
+import { EncryptionHelper } from "../apiBase/helpers";
 
 @controller("/donate")
 export class DonateController extends GivingBaseController {
@@ -17,9 +18,8 @@ export class DonateController extends GivingBaseController {
     }
 
     private loadPrivateKey = async (churchId: string) => {
-        const gateways = await this.repositories.gateway.loadChurchProvider(churchId, "Stripe");
-        console.log(JSON.stringify(gateways));
-        const result = (gateways.length === 0) ? "" : gateways[0].privateKey;
+        const gateways = await this.repositories.gateway.loadAll(churchId);
+        const result = (gateways.length === 0) ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
         return result;
     }
 
