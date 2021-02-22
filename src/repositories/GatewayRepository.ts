@@ -13,6 +13,7 @@ export class GatewayRepository {
 
     public async create(gateway: Gateway) {
         gateway.id = UniqueIdHelper.shortId();
+        DB.query("DELETE FROM gateways WHERE churchId=? AND id<>?;", [gateway.churchId, gateway.id]);  // enforce a single record per church (for now)
         return DB.query(
             "INSERT INTO gateways (id, churchId, provider, publicKey, privateKey) VALUES (?, ?, ?, ?, ?);",
             [gateway.id, gateway.churchId, gateway.provider, gateway.publicKey, gateway.privateKey]

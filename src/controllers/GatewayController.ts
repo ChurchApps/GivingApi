@@ -2,7 +2,8 @@ import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } f
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { Gateway } from "../models"
-import { Permissions } from '../helpers/Permissions'
+import { EncryptionHelper } from "../helpers"
+import { Permissions } from "../helpers/Permissions"
 
 @controller("/gateways")
 export class GatewayController extends GivingBaseController {
@@ -29,7 +30,12 @@ export class GatewayController extends GivingBaseController {
             if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
             else {
                 const promises: Promise<Gateway>[] = [];
-                req.body.forEach(gateway => { gateway.churchId = au.churchId; promises.push(this.repositories.gateway.save(gateway)); });
+                req.body.forEach(gateway => {
+                    gateway.churchId = au.churchId;
+                    gateway.privateKey = EncryptionHelper.encrypt(gateway.privateKey);
+                    console.log(gateway.privateKey);
+                    promises.push(this.repositories.gateway.save(gateway));
+                });
                 const result = await Promise.all(promises);
                 return this.repositories.gateway.convertAllToModel(au.churchId, result);
             }
