@@ -3,17 +3,36 @@ import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
 import { EncryptionHelper } from "../apiBase/helpers";
+import { CheckoutDetails, Donation, FundDonation } from "../models";
 
 @controller("/donate")
 export class DonateController extends GivingBaseController {
 
     @httpPost("/checkout")
-    public async save(req: express.Request<{}, {}, { churchId: string, amount: number, successUrl: string, cancelUrl: string }>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async save(req: express.Request<{}, {}, CheckoutDetails>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapperAnon(req, res, async () => {
             const secretKey = await this.loadPrivateKey(req.body.churchId);
             if (secretKey === "") return this.json({}, 401);
-            const sessionId = await StripeHelper.createCheckoutSession(secretKey, req.body.amount, req.body.successUrl, req.body.cancelUrl);
+
+            const details = req.body;
+            const sessionId = await StripeHelper.createCheckoutSession(secretKey, req.body);
             return { "sessionId": sessionId };
+        });
+    }
+
+    @httpPost("/log")
+    public async log(req: express.Request<{}, {}, { churchId: string, sessionId: string }>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        return this.actionWrapperAnon(req, res, async () => {
+            const secretKey = await this.loadPrivateKey(req.body.churchId);
+            if (secretKey === "") return this.json({}, 401);
+
+            // load cuurent batch
+            // load general fund
+
+            const details = await StripeHelper.verifySession(secretKey, req.body.sessionId);
+            const donation: Donation = { amount: details.session.amount_total, churchId: req.body.churchId, method: "stripe", methodDetails: details.session.id, donationDate: new Date() };
+            this.repositories.donation.save(donation);
+            const fundDonation: FundDonation = { churchId: donation.churchId, amount: donation.amount, donationId: donation.id, };
         });
     }
 

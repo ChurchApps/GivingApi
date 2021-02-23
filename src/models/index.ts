@@ -4,3 +4,4 @@ export { DonationSummary } from './DonationSummary';
 export { Fund } from './Fund';
 export { FundDonation } from './FundDonation';
 export { Gateway } from './Gateway';
+export { CheckoutDetails } from './CheckoutDetails';
