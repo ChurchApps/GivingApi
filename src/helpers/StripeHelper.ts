@@ -8,8 +8,6 @@ export class StripeHelper {
     static createCheckoutSession = async (secretKey: string, details: CheckoutDetails) => {
 
         details.successUrl = details.successUrl + "?sessionId={CHECKOUT_SESSION_ID}";
-
-
         const stripe = StripeHelper.getStripeObj(secretKey);
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -27,18 +25,18 @@ export class StripeHelper {
             success_url: details.successUrl,
             cancel_url: details.cancelUrl,
         });
-
-        if (!UniqueIdHelper.isMissing(details.email)) session.customer_email = details.email;
-        // if (!UniqueIdHelper.isMissing(details.email)) session.customer_details.. = details.email;
-
         return session.id;
     }
 
     static verifySession = async (secretKey: string, sessionId: string) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
         const session = await stripe.checkout.sessions.retrieve(sessionId);
-        const customer = await stripe.customers.retrieve(session.customer.toString());
-        return { session, customer };
+        const payment = await stripe.paymentIntents.retrieve(session.payment_intent.toString());
+
+        const bd = payment.charges.data[0].billing_details;
+        const receiptUrl = payment.charges.data[0].receipt_url;
+
+        return { session, email: bd.email, name: bd.name, receiptUrl };
     }
 
     /*
