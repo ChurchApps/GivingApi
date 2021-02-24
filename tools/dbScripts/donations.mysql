@@ -8,7 +8,7 @@ CREATE TABLE `donations` (
   `donationDate` datetime DEFAULT NULL,
   `amount` double DEFAULT NULL,
   `method` varchar(50) DEFAULT NULL,
-  `methodDetails` varchar(50) DEFAULT NULL,
+  `methodDetails` varchar(255) DEFAULT NULL,
   `notes` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
