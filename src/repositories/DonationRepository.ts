@@ -44,6 +44,10 @@ export class DonationRepository {
         return DB.query("SELECT d.* FROM donations d WHERE d.churchId=? AND d.batchId=?;", [churchId, batchId]);
     }
 
+    public async loadByMethodDetails(churchId: string, method: string, methodDetails: string) {
+        return DB.queryOne("SELECT d.* FROM donations d WHERE d.churchId=? AND d.method=? AND d.methodDetails=?;", [churchId, method, methodDetails]);
+    }
+
     public async loadByPersonId(churchId: string, personId: string) {
         const sql = "SELECT d.*, f.id as fundId, f.name as fundName"
             + " FROM donations d"

@@ -7,6 +7,18 @@ import { UniqueIdHelper } from "../helpers";
 @injectable()
 export class FundRepository {
 
+    public async getOrCreateGeneral(churchId: string) {
+        const data = await DB.queryOne("SELECT * FROM funds WHERE churchId=? AND name='General Fund' AND removed=0;", [churchId]);
+        console.log("data");
+        console.log(data);
+        if (data !== null) return this.convertToModel(churchId, data);
+        else {
+            const fund: Fund = { churchId, name: "General Fund" };
+            await this.save(fund);
+            return fund;
+        }
+    }
+
     public async save(fund: Fund) {
         if (UniqueIdHelper.isMissing(fund.id)) return this.create(fund); else return this.update(fund);
     }
