@@ -39,7 +39,7 @@ export class FundRepository {
     }
 
     public async delete(churchId: string, id: string) {
-        DB.query("UPDATE funds SET removed=0 WHERE id=? AND churchId=?;", [id, churchId]);
+        DB.query("UPDATE funds SET removed=1 WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
     public async load(churchId: string, id: string) {
