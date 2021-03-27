@@ -26,7 +26,7 @@ export class FundDonationController extends GivingBaseController {
                     if (req.query.startDate === undefined) result = await this.repositories.fundDonation.loadByFundId(au.churchId, req.query.fundId.toString());
                     else {
                         const startDate = new Date(req.query.startDate.toString());
-                        const endDate = new Date(req.query.startDate.toString());
+                        const endDate = new Date(req.query.endDate.toString());
                         result = await this.repositories.fundDonation.loadByFundIdDate(au.churchId, req.query.fundId.toString(), startDate, endDate);
                     }
                 } else result = await this.repositories.fundDonation.loadAll(au.churchId);
