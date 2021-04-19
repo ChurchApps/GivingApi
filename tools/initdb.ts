@@ -15,6 +15,7 @@ const init = async () => {
     { title: "Gateways", file: "gateways.mysql" }
   ];
 
+  await DBCreator.init(["Settings"]);
   await initTables("Giving", givingTables);
 }
 
