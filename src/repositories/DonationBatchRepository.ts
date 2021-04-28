@@ -17,36 +17,36 @@ export class DonationBatchRepository {
         }
     }
 
-    public async save(donationBatch: DonationBatch) {
+    public save(donationBatch: DonationBatch) {
         if (UniqueIdHelper.isMissing(donationBatch.id)) return this.create(donationBatch); else return this.update(donationBatch);
     }
 
     public async create(donationBatch: DonationBatch) {
         donationBatch.id = UniqueIdHelper.shortId();
         const batchDate = DateTimeHelper.toMysqlDate(donationBatch.batchDate);
-        return DB.query(
-            "INSERT INTO donationBatches (id, churchId, name, batchDate) VALUES (?, ?, ?, ?);",
-            [donationBatch.id, donationBatch.churchId, donationBatch.name, batchDate]
-        ).then(() => { return donationBatch; });
+        const sql = "INSERT INTO donationBatches (id, churchId, name, batchDate) VALUES (?, ?, ?, ?);";
+        const params = [donationBatch.id, donationBatch.churchId, donationBatch.name, batchDate];
+        await DB.query(sql, params);
+        return donationBatch;
     }
 
     public async update(donationBatch: DonationBatch) {
         const batchDate = DateTimeHelper.toMysqlDate(donationBatch.batchDate);
-        return DB.query(
-            "UPDATE donationBatches SET name=?, batchDate=? WHERE id=? and churchId=?",
-            [donationBatch.name, batchDate, donationBatch.id, donationBatch.churchId]
-        ).then(() => { return donationBatch });
+        const sql = "UPDATE donationBatches SET name=?, batchDate=? WHERE id=? and churchId=?";
+        const params = [donationBatch.name, batchDate, donationBatch.id, donationBatch.churchId];
+        await DB.query(sql, params);
+        return donationBatch;
     }
 
-    public async delete(churchId: string, id: string) {
-        DB.query("DELETE FROM donationBatches WHERE id=? AND churchId=?;", [id, churchId]);
+    public delete(churchId: string, id: string) {
+        return DB.query("DELETE FROM donationBatches WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: string, id: string) {
+    public load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM donationBatches WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadAll(churchId: string) {
+    public loadAll(churchId: string) {
         const sql = "SELECT *"
             + " , IFNULL((SELECT Count(*) FROM donations WHERE batchId = db.Id),0) AS donationCount"
             + " , IFNULL((SELECT SUM(amount) FROM donations WHERE batchId = db.Id),0) AS totalAmount"

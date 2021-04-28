@@ -7,7 +7,7 @@ import { UniqueIdHelper } from "../helpers";
 @injectable()
 export class DonationRepository {
 
-    public async save(donation: Donation) {
+    public save(donation: Donation) {
         if (donation.personId === "") donation.personId = null;
         if (UniqueIdHelper.isMissing(donation.id)) return this.create(donation); else return this.update(donation);
     }
@@ -15,40 +15,41 @@ export class DonationRepository {
     public async create(donation: Donation) {
         donation.id = UniqueIdHelper.shortId();
         const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
-        return DB.query(
-            "INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
-            [donation.id, donation.churchId, donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes]
-        ).then(() => { return donation; });
+        const sql = "INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        const params = [donation.id, donation.churchId, donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes];
+        await DB.query(sql, params);
+        return donation;
     }
 
     public async update(donation: Donation) {
         const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
         const sql = "UPDATE donations SET batchId=?, personId=?, donationDate=?, amount=?, method=?, methodDetails=?, notes=? WHERE id=? and churchId=?";
         const params = [donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes, donation.id, donation.churchId]
-        return DB.query(sql, params).then(() => { return donation });
+        await DB.query(sql, params)
+        return donation;
     }
 
-    public async delete(churchId: string, id: string) {
-        DB.query("DELETE FROM donations WHERE id=? AND churchId=?;", [id, churchId]);
+    public delete(churchId: string, id: string) {
+        return DB.query("DELETE FROM donations WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: string, id: string) {
+    public load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM donations WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadAll(churchId: string) {
+    public loadAll(churchId: string) {
         return DB.query("SELECT * FROM donations WHERE churchId=?;", [churchId]);
     }
 
-    public async loadByBatchId(churchId: string, batchId: string) {
+    public loadByBatchId(churchId: string, batchId: string) {
         return DB.query("SELECT d.* FROM donations d WHERE d.churchId=? AND d.batchId=?;", [churchId, batchId]);
     }
 
-    public async loadByMethodDetails(churchId: string, method: string, methodDetails: string) {
+    public loadByMethodDetails(churchId: string, method: string, methodDetails: string) {
         return DB.queryOne("SELECT d.* FROM donations d WHERE d.churchId=? AND d.method=? AND d.methodDetails=?;", [churchId, method, methodDetails]);
     }
 
-    public async loadByPersonId(churchId: string, personId: string) {
+    public loadByPersonId(churchId: string, personId: string) {
         const sql = "SELECT d.*, f.id as fundId, f.name as fundName"
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
@@ -57,7 +58,7 @@ export class DonationRepository {
         return DB.query(sql, [churchId, personId]);
     }
 
-    public async loadSummary(churchId: string, startDate: Date, endDate: Date) {
+    public loadSummary(churchId: string, startDate: Date, endDate: Date) {
         const sDate = DateTimeHelper.toMysqlDate(startDate);
         const eDate = DateTimeHelper.toMysqlDate(endDate);
         // const sql = "SELECT week(d.donationDate, 0) as week, SUM(fd.amount) as totalAmount, f.name as fundName"
