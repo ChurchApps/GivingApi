@@ -6,3 +6,4 @@ export { FundController } from "./FundController";
 export { FundDonationController } from "./FundDonationController";
 export { GatewayController } from "./GatewayController";
 export { DonateController } from "./DonateController";
+export { PaymentMethodController } from "./PaymentMethodController";

@@ -47,6 +47,54 @@ export class StripeHelper {
         }
         */
 
+    static createCustomer = async (test: any) => {
+        const stripe = StripeHelper.getStripeObj('sk_test_sl0nOv3cbIlnmQBC54CCu1yf00nkK0O8fo');
+        const customer = await stripe.customers.create({email: test});
+        return customer.id;
+    }
+
+    static async addCard(customerId: string, paymentMethod: any) {
+        const stripe = StripeHelper.getStripeObj('sk_test_sl0nOv3cbIlnmQBC54CCu1yf00nkK0O8fo');
+        return await stripe.customers.createSource(customerId, paymentMethod);
+    }
+
+    static async updateCard(paymentMethodId: string, card: any) {
+        const stripe = StripeHelper.getStripeObj('sk_test_sl0nOv3cbIlnmQBC54CCu1yf00nkK0O8fo');
+        return await stripe.paymentMethods.update(paymentMethodId, card);
+    }
+
+    static async attachPaymentMethod(paymentMethodId: string, customer: any) {
+        const stripe = StripeHelper.getStripeObj('sk_test_sl0nOv3cbIlnmQBC54CCu1yf00nkK0O8fo');
+        return await stripe.paymentMethods.attach(paymentMethodId, customer);
+    }
+
+    static async createBankAccount(customerId: string, source: any) {
+        const stripe = StripeHelper.getStripeObj('sk_test_sl0nOv3cbIlnmQBC54CCu1yf00nkK0O8fo');
+        return await stripe.customers.createSource(customerId, source);
+    }
+
+    static async updateBank(paymentMethodId: string, bankData: any, customerId: string) {
+        const stripe = StripeHelper.getStripeObj('sk_test_sl0nOv3cbIlnmQBC54CCu1yf00nkK0O8fo');
+        return await stripe.customers.updateSource(customerId, paymentMethodId, bankData);
+    }
+
+    static async getCustomerPaymentMethods(customer: any) {
+        const stripe = StripeHelper.getStripeObj('sk_test_sl0nOv3cbIlnmQBC54CCu1yf00nkK0O8fo');
+        const paymentMethods =  await stripe.paymentMethods.list({ customer: customer.customerId, type: 'card' });
+        const bankAccounts = await stripe.customers.listSources(customer.customerId, {object: 'bank_account'});
+        return {cards: paymentMethods, banks: bankAccounts, customer};
+    }
+
+    static async detachPaymentMethod(paymentMethodId: string) {
+        const stripe = StripeHelper.getStripeObj('sk_test_sl0nOv3cbIlnmQBC54CCu1yf00nkK0O8fo');
+        return await stripe.paymentMethods.detach(paymentMethodId);
+    }
+
+    static async deleteBankAccount(customerId: string, paymentMethodId: string) {
+        const stripe = StripeHelper.getStripeObj('sk_test_sl0nOv3cbIlnmQBC54CCu1yf00nkK0O8fo');
+        return await stripe.customers.deleteSource(customerId, paymentMethodId);
+    }
+
     private static getStripeObj = (secretKey: string) => {
         return new Stripe(secretKey, { apiVersion: '2020-08-27' });
     }

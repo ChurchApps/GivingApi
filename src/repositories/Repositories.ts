@@ -1,5 +1,6 @@
 import { DonationRepository, DonationBatchRepository, FundDonationRepository, FundRepository } from ".";
 import { GatewayRepository } from "./GatewayRepository";
+import { PaymentMethodRepository } from "./PaymentMethodRepository";
 
 export class Repositories {
     public donationBatch: DonationBatchRepository;
@@ -7,6 +8,7 @@ export class Repositories {
     public fundDonation: FundDonationRepository;
     public fund: FundRepository;
     public gateway: GatewayRepository;
+    public paymentMethod: PaymentMethodRepository;
 
 
     private static _current: Repositories = null;
@@ -21,5 +23,6 @@ export class Repositories {
         this.fundDonation = new FundDonationRepository();
         this.fund = new FundRepository();
         this.gateway = new GatewayRepository();
+        this.paymentMethod = new PaymentMethodRepository();
     }
 }
