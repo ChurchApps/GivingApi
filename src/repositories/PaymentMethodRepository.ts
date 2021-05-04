@@ -16,13 +16,6 @@ export class PaymentMethodRepository {
         ).then(() => { return paymentMethod; });
     }
 
-    // public async update(paymentMethod: PaymentMethod) {
-    //     return DB.query(
-    //         "UPDATE paymentMethod SET provider=?, publicKey=?, privateKey=? WHERE id=? and churchId=?",
-    //         [gateway.provider, gateway.publicKey, gateway.privateKey, gateway.id, gateway.churchId]
-    //     ).then(() => { return gateway });
-    // }
-
     public async delete(churchId: string, id: string) {
         DB.query("DELETE FROM paymentmethods WHERE id=? AND churchId=?;", [id, churchId]);
     }
