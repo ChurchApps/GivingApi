@@ -22,7 +22,7 @@ export class PaymentMethodController extends GivingBaseController {
             if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
             else {
                 const customer = await this.repositories.paymentMethod.loadCustomerId(au.churchId, id);
-                return await StripeHelper.getCustomerPaymentMethods(secretKey, customer);
+                return customer ? await StripeHelper.getCustomerPaymentMethods(secretKey, customer) : [];
             }
         });
     }
@@ -45,7 +45,6 @@ export class PaymentMethodController extends GivingBaseController {
 
     @httpPost("/updatecard")
     public async updateCard(req: express.Request<any>, res: express.Response): Promise<any> {
-
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
             if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
