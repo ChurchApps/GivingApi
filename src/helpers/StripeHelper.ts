@@ -81,7 +81,7 @@ export class StripeHelper {
         const stripe = StripeHelper.getStripeObj(secretKey);
         const paymentMethods =  await stripe.paymentMethods.list({ customer: customer.customerId, type: 'card' });
         const bankAccounts = await stripe.customers.listSources(customer.customerId, {object: 'bank_account'});
-        return {cards: paymentMethods, banks: bankAccounts, customer};
+        return [{cards: paymentMethods, banks: bankAccounts, customer}];
     }
 
     static async detachPaymentMethod(secretKey: string, paymentMethodId: string) {

@@ -33,10 +33,10 @@ export class PaymentMethodController extends GivingBaseController {
             const secretKey = await this.loadPrivateKey(au.churchId);
             if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
             else {
-                const { paymentMethod, personId, personEmail, customerId } = req.body;
-                const customer = customerId || await StripeHelper.createCustomer(secretKey, personEmail);
-                const stripePaymentMethod = await StripeHelper.attachPaymentMethod(secretKey, paymentMethod.id, {customer});
-                const pm = { id: paymentMethod.id, churchId: au.churchId, personId, customerId: customer };
+                const { id, personId, email, customerId } = req.body;
+                const customer = customerId || await StripeHelper.createCustomer(secretKey, email);
+                const stripePaymentMethod = await StripeHelper.attachPaymentMethod(secretKey, id, {customer});
+                const pm = { id, churchId: au.churchId, personId, customerId: customer };
                 this.repositories.paymentMethod.save(pm);
                 return stripePaymentMethod;
             }
@@ -61,9 +61,9 @@ export class PaymentMethodController extends GivingBaseController {
             const secretKey = await this.loadPrivateKey(au.churchId);
             if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
             else {
-                const { token, personId, personEmail, customerId } = req.body;
+                const { id, personId, personEmail, customerId } = req.body;
                 const customer = customerId || await StripeHelper.createCustomer(secretKey, personEmail);
-                const bankAccount = await StripeHelper.createBankAccount(secretKey, customerId, {source: token.id})
+                const bankAccount = await StripeHelper.createBankAccount(secretKey, customerId, {source: id})
                 const pm = { id: bankAccount.id, churchId: au.churchId, personId, customerId: customer };
                 this.repositories.paymentMethod.save(pm);
                 return bankAccount;
