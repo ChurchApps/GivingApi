@@ -77,6 +77,11 @@ export class StripeHelper {
         return await stripe.customers.updateSource(customerId, paymentMethodId, bankData);
     }
 
+    static async verifyBank(secretKey: string, paymentMethodId: string, amountData: any, customerId: string) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.customers.verifySource(customerId, paymentMethodId, amountData);
+    }
+
     static async getCustomerPaymentMethods(secretKey: string, customer: any) {
         const stripe = StripeHelper.getStripeObj(secretKey);
         const paymentMethods =  await stripe.paymentMethods.list({ customer: customer.customerId, type: 'card' });

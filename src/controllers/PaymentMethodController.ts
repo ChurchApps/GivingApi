@@ -83,6 +83,18 @@ export class PaymentMethodController extends GivingBaseController {
         });
     }
 
+    @httpPost("/verifybank")
+    public async verifyBank(req: express.Request<any>, res: express.Response): Promise<any> {
+        return this.actionWrapper(req, res, async (au) => {
+            const secretKey = await this.loadPrivateKey(au.churchId);
+            if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
+            else {
+                const { paymentMethodId, customerId, amountData } = req.body;
+                return await StripeHelper.verifyBank(secretKey, paymentMethodId, amountData, customerId);
+            }
+        });
+    }
+
     @httpDelete("/:id/:customerid")
     public async delete(@requestParam("id") id: string, @requestParam("customerid") customerId: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
