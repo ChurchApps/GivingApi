@@ -63,7 +63,7 @@ export class PaymentMethodController extends GivingBaseController {
             else {
                 const { id, personId, personEmail, customerId } = req.body;
                 const customer = customerId || await StripeHelper.createCustomer(secretKey, personEmail);
-                const bankAccount = await StripeHelper.createBankAccount(secretKey, customerId, {source: id})
+                const bankAccount = await StripeHelper.createBankAccount(secretKey, customer, {source: id})
                 const pm = { id: bankAccount.id, churchId: au.churchId, personId, customerId: customer };
                 this.repositories.paymentMethod.save(pm);
                 return bankAccount;
