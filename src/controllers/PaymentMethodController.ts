@@ -7,21 +7,13 @@ import { Permissions } from "../helpers/Permissions"
 @controller("/paymentmethods")
 export class PaymentMethodController extends GivingBaseController {
 
-    @httpGet("/:id")
-    public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
-        return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
-            else return this.repositories.paymentMethod.convertToModel(au.churchId, await this.repositories.paymentMethod.load(au.churchId, id));
-        });
-    }
-
     @httpGet("/personid/:id")
     public async getPersonPaymentMethods(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
+            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
             else {
-                const customer = await this.repositories.paymentMethod.loadCustomerId(au.churchId, id);
+                const customer = await this.repositories.customer.load(au.churchId, id);
                 return customer ? await StripeHelper.getCustomerPaymentMethods(secretKey, customer) : [];
             }
         });
@@ -31,13 +23,15 @@ export class PaymentMethodController extends GivingBaseController {
     public async addCard(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
+            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
             else {
-                const { id, personId, email, customerId } = req.body;
-                const customer = customerId || await StripeHelper.createCustomer(secretKey, email);
+                const { id, personId, customerId, email } = req.body;
+                let customer = customerId;
+                if (!customer) {
+                    customer = await StripeHelper.createCustomer(secretKey, email);
+                    this.repositories.customer.save({ id: customer, churchId: au.churchId, personId });
+                }
                 const stripePaymentMethod = await StripeHelper.attachPaymentMethod(secretKey, id, {customer});
-                const pm = { id, churchId: au.churchId, personId, customerId: customer };
-                this.repositories.paymentMethod.save(pm);
                 return stripePaymentMethod;
             }
         });
@@ -47,7 +41,7 @@ export class PaymentMethodController extends GivingBaseController {
     public async updateCard(req: express.Request<any>, res: express.Response): Promise<any> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
+            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
             else {
                 const { paymentMethodId, cardData } = req.body;
                 return await StripeHelper.updateCard(secretKey, paymentMethodId, cardData);
@@ -59,14 +53,16 @@ export class PaymentMethodController extends GivingBaseController {
     public async addBankAccount(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
+            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
             else {
-                const { id, personId, personEmail, customerId } = req.body;
-                const customer = customerId || await StripeHelper.createCustomer(secretKey, personEmail);
+                const { id, personId, customerId, email } = req.body;
+                let customer = customerId;
+                if (!customer) {
+                    customer = await StripeHelper.createCustomer(secretKey, email);
+                    this.repositories.customer.save({ id: customer, churchId: au.churchId, personId });
+                }
                 try {
                     const bankAccount = await StripeHelper.createBankAccount(secretKey, customer, {source: id})
-                    const pm = { id: bankAccount.id, churchId: au.churchId, personId, customerId: customer };
-                    this.repositories.paymentMethod.save(pm);
                     return bankAccount;
                 } catch (e) {
                     return e;
@@ -79,7 +75,7 @@ export class PaymentMethodController extends GivingBaseController {
     public async updateBank(req: express.Request<any>, res: express.Response): Promise<any> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
+            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
             else {
                 const { paymentMethodId, bankData, customerId } = req.body;
                 return await StripeHelper.updateBank(secretKey, paymentMethodId, bankData, customerId);
@@ -112,7 +108,6 @@ export class PaymentMethodController extends GivingBaseController {
                 const paymentType = id.substring(0,2);
                 if (paymentType === 'pm') await StripeHelper.detachPaymentMethod(secretKey, id);
                 if (paymentType === 'ba') await StripeHelper.deleteBankAccount(secretKey, customerId, id);
-                await this.repositories.paymentMethod.delete(au.churchId, id);
             }
         });
     }

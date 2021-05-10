@@ -1,6 +1,4 @@
-import { DonationRepository, DonationBatchRepository, FundDonationRepository, FundRepository } from ".";
-import { GatewayRepository } from "./GatewayRepository";
-import { PaymentMethodRepository } from "./PaymentMethodRepository";
+import { DonationRepository, DonationBatchRepository, FundDonationRepository, FundRepository, GatewayRepository, CustomerRepository } from ".";
 
 export class Repositories {
     public donationBatch: DonationBatchRepository;
@@ -8,8 +6,7 @@ export class Repositories {
     public fundDonation: FundDonationRepository;
     public fund: FundRepository;
     public gateway: GatewayRepository;
-    public paymentMethod: PaymentMethodRepository;
-
+    public customer: CustomerRepository;
 
     private static _current: Repositories = null;
     public static getCurrent = () => {
@@ -23,6 +20,6 @@ export class Repositories {
         this.fundDonation = new FundDonationRepository();
         this.fund = new FundRepository();
         this.gateway = new GatewayRepository();
-        this.paymentMethod = new PaymentMethodRepository();
+        this.customer = new CustomerRepository();
     }
 }
