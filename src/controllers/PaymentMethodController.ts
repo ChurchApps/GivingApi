@@ -63,10 +63,14 @@ export class PaymentMethodController extends GivingBaseController {
             else {
                 const { id, personId, personEmail, customerId } = req.body;
                 const customer = customerId || await StripeHelper.createCustomer(secretKey, personEmail);
-                const bankAccount = await StripeHelper.createBankAccount(secretKey, customer, {source: id})
-                const pm = { id: bankAccount.id, churchId: au.churchId, personId, customerId: customer };
-                this.repositories.paymentMethod.save(pm);
-                return bankAccount;
+                try {
+                    const bankAccount = await StripeHelper.createBankAccount(secretKey, customer, {source: id})
+                    const pm = { id: bankAccount.id, churchId: au.churchId, personId, customerId: customer };
+                    this.repositories.paymentMethod.save(pm);
+                    return bankAccount;
+                } catch (e) {
+                    return e;
+                }
             }
         });
     }
@@ -90,7 +94,11 @@ export class PaymentMethodController extends GivingBaseController {
             if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
             else {
                 const { paymentMethodId, customerId, amountData } = req.body;
-                return await StripeHelper.verifyBank(secretKey, paymentMethodId, amountData, customerId);
+                try {
+                    return await StripeHelper.verifyBank(secretKey, paymentMethodId, amountData, customerId);
+                } catch(e) {
+                    return e;
+                }
             }
         });
     }
