@@ -4,7 +4,6 @@ import { UniqueIdHelper } from '../apiBase';
 
 export class StripeHelper {
 
-
     static createCheckoutSession = async (secretKey: string, details: CheckoutDetails) => {
 
         details.successUrl = details.successUrl + "?sessionId={CHECKOUT_SESSION_ID}";
@@ -46,6 +45,59 @@ export class StripeHelper {
             console.log(donor.id);
         }
         */
+
+    static createCustomer = async (secretKey: string, email: string) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        const customer = await stripe.customers.create({email});
+        return customer.id;
+    }
+
+    static async addCard(secretKey: string, customerId: string, paymentMethod: any) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.customers.createSource(customerId, paymentMethod);
+    }
+
+    static async updateCard(secretKey: string, paymentMethodId: string, card: any) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.paymentMethods.update(paymentMethodId, card);
+    }
+
+    static async attachPaymentMethod(secretKey: string, paymentMethodId: string, customer: any) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.paymentMethods.attach(paymentMethodId, customer);
+    }
+
+    static async createBankAccount(secretKey: string, customerId: string, source: any) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.customers.createSource(customerId, source);
+    }
+
+    static async updateBank(secretKey: string, paymentMethodId: string, bankData: any, customerId: string) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.customers.updateSource(customerId, paymentMethodId, bankData);
+    }
+
+    static async verifyBank(secretKey: string, paymentMethodId: string, amountData: any, customerId: string) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.customers.verifySource(customerId, paymentMethodId, amountData);
+    }
+
+    static async getCustomerPaymentMethods(secretKey: string, customer: any) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        const paymentMethods =  await stripe.paymentMethods.list({ customer: customer.id, type: 'card' });
+        const bankAccounts = await stripe.customers.listSources(customer.id, {object: 'bank_account'});
+        return [{cards: paymentMethods, banks: bankAccounts, customer}];
+    }
+
+    static async detachPaymentMethod(secretKey: string, paymentMethodId: string) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.paymentMethods.detach(paymentMethodId);
+    }
+
+    static async deleteBankAccount(secretKey: string, customerId: string, paymentMethodId: string) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.customers.deleteSource(customerId, paymentMethodId);
+    }
 
     private static getStripeObj = (secretKey: string) => {
         return new Stripe(secretKey, { apiVersion: '2020-08-27' });
