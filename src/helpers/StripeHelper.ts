@@ -1,11 +1,9 @@
 import Stripe from 'stripe';
-import { CheckoutDetails } from "../models";
-import { UniqueIdHelper } from '../apiBase';
+import { CheckoutDetails, PaymentDetails } from "../models";
 
 export class StripeHelper {
 
     static createCheckoutSession = async (secretKey: string, details: CheckoutDetails) => {
-
         details.successUrl = details.successUrl + "?sessionId={CHECKOUT_SESSION_ID}";
         const stripe = StripeHelper.getStripeObj(secretKey);
         const session = await stripe.checkout.sessions.create({
@@ -45,6 +43,17 @@ export class StripeHelper {
             console.log(donor.id);
         }
         */
+
+    static donate = async (secretKey: string, payment: PaymentDetails) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        payment.amount = payment.amount * 100;
+        try {
+            if (payment?.payment_method) return await stripe.paymentIntents.create(payment);
+            if (payment?.source) return await stripe.charges.create(payment);
+        } catch (err) {
+            console.log('Error code is: ', err.code);
+        }
+    }
 
     static createCustomer = async (secretKey: string, email: string) => {
         const stripe = StripeHelper.getStripeObj(secretKey);

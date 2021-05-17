@@ -3,7 +3,7 @@ import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
 import { EncryptionHelper } from "../apiBase/helpers";
-import { CheckoutDetails, Donation, FundDonation, Fund, DonationBatch } from "../models";
+import { CheckoutDetails, Donation, FundDonation, Fund, DonationBatch, PaymentDetails } from "../models";
 
 @controller("/donate")
 export class DonateController extends GivingBaseController {
@@ -42,6 +42,31 @@ export class DonateController extends GivingBaseController {
                 }
             }
             return { receiptUrl };
+        });
+    }
+
+    @httpPost("/charge")
+    public async addBankAccount(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        return this.actionWrapper(req, res, async (au) => {
+            const secretKey = await this.loadPrivateKey(au.churchId);
+            if (secretKey === "") return this.json({}, 401);
+            const donationData = req.body;
+            const paymentData: PaymentDetails = { amount: donationData.amount, currency: 'usd', customer: donationData.customerId };
+            if (donationData.type === 'card') {
+                paymentData.payment_method = donationData.id;
+                paymentData.confirm = true;
+                paymentData.off_session = true;
+            }
+            if (donationData.type === 'bank') paymentData.source = donationData.id;
+            const charge = await StripeHelper.donate(secretKey, paymentData);
+
+            const generalFund: Fund = await this.repositories.fund.getOrCreateGeneral(req.body.churchId);
+            const batch: DonationBatch = await this.repositories.donationBatch.getOrCreateCurrent(req.body.churchId);
+            const notes = donationData.person.email + " " + donationData.person.name + " ";
+            const donation: Donation = { amount: charge.amount * 0.01, churchId: au.churchId, personId: donationData.person.id, method: "stripe", methodDetails: charge.id, donationDate: new Date(), batchId: batch.id, notes };
+            this.repositories.donation.save(donation);
+            const fundDonation: FundDonation = { churchId: donation.churchId, amount: donation.amount, donationId: donation.id, fundId: generalFund.id };
+            this.repositories.fundDonation.save(fundDonation);
         });
     }
 
