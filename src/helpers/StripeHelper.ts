@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { CheckoutDetails, PaymentDetails } from "../models";
+import { CheckoutDetails, Fund, PaymentDetails } from "../models";
 
 export class StripeHelper {
 
@@ -53,6 +53,28 @@ export class StripeHelper {
         } catch (err) {
             console.log('Error code is: ', err.code);
         }
+    }
+
+    static createSubscription = async (secretKey: string, donationData: any) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.subscriptions.create({
+            customer: donationData.customer,
+            default_payment_method: donationData.default_payment_method,
+            items: [{
+                price_data: {
+                  currency: 'usd',
+                  product: donationData.productId,
+                  recurring: donationData.interval,
+                  unit_amount: donationData.amount * 100
+              }
+            }],
+        });
+    }
+
+    static createProduct = async (secretKey: string, fund: Fund) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        const product = await stripe.products.create({ name: fund.id, description: 'Fund: ' + fund.name });
+        return product.id;
     }
 
     static createCustomer = async (secretKey: string, email: string) => {

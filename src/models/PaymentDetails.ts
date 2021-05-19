@@ -7,4 +7,7 @@ export interface PaymentDetails {
     description?: string;
     off_session?: boolean,
     confirm?: boolean,
+    productId?: string,
+    default_payment_method?: string,
+    interval?: {}
 }
