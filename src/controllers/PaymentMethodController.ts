@@ -114,7 +114,6 @@ export class PaymentMethodController extends GivingBaseController {
 
     private loadPrivateKey = async (churchId: string) => {
         const gateways = await this.repositories.gateway.loadAll(churchId);
-        const result = (gateways.length === 0) ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
-        return result;
+        return (gateways.length === 0) ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
     }
 }

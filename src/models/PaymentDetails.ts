@@ -1,4 +1,5 @@
 export interface PaymentDetails {
+    id?: string,
     amount: number;
     currency: string;
     customer: string;
@@ -8,6 +9,10 @@ export interface PaymentDetails {
     off_session?: boolean,
     confirm?: boolean,
     productId?: string,
-    default_payment_method?: string,
-    interval?: {}
+    payment_method_id?: string,
+    type?: string,
+    billing_cycle_anchor?: number,
+    proration_behavior?: string,
+    interval?: {},
+    metadata?: {}
 }

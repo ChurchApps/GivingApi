@@ -1,4 +1,4 @@
-import { DonationRepository, DonationBatchRepository, FundDonationRepository, FundRepository, GatewayRepository, CustomerRepository } from ".";
+import { DonationRepository, DonationBatchRepository, FundDonationRepository, FundRepository, GatewayRepository, CustomerRepository, EventLogRepository, SubscriptionRepository, SubscriptionFundsRepository } from ".";
 
 export class Repositories {
     public donationBatch: DonationBatchRepository;
@@ -7,6 +7,9 @@ export class Repositories {
     public fund: FundRepository;
     public gateway: GatewayRepository;
     public customer: CustomerRepository;
+    public eventLog: EventLogRepository;
+    public subscription: SubscriptionRepository;
+    public subscriptionFund: SubscriptionFundsRepository;
 
     private static _current: Repositories = null;
     public static getCurrent = () => {
@@ -21,5 +24,8 @@ export class Repositories {
         this.fund = new FundRepository();
         this.gateway = new GatewayRepository();
         this.customer = new CustomerRepository();
+        this.eventLog = new EventLogRepository();
+        this.subscription = new SubscriptionRepository();
+        this.subscriptionFund = new SubscriptionFundsRepository();
     }
 }

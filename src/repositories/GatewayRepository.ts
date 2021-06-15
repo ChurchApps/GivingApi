@@ -14,15 +14,15 @@ export class GatewayRepository {
     public async create(gateway: Gateway) {
         gateway.id = UniqueIdHelper.shortId();
         await DB.query("DELETE FROM gateways WHERE churchId=? AND id<>?;", [gateway.churchId, gateway.id]);  // enforce a single record per church (for now)
-        const sql = "INSERT INTO gateways (id, churchId, provider, publicKey, privateKey) VALUES (?, ?, ?, ?, ?);";
-        const params = [gateway.id, gateway.churchId, gateway.provider, gateway.publicKey, gateway.privateKey];
+        const sql = "INSERT INTO gateways (id, churchId, provider, publicKey, privateKey, webhookKey, productId) VALUES (?, ?, ?, ?, ?, ?, ?);";
+        const params = [gateway.id, gateway.churchId, gateway.provider, gateway.publicKey, gateway.privateKey, gateway.webhookKey, gateway.productId];
         await DB.query(sql, params);
         return gateway;
     }
 
     public async update(gateway: Gateway) {
-        const sql = "UPDATE gateways SET provider=?, publicKey=?, privateKey=? WHERE id=? and churchId=?";
-        const params = [gateway.provider, gateway.publicKey, gateway.privateKey, gateway.id, gateway.churchId];
+        const sql = "UPDATE gateways SET provider=?, publicKey=?, privateKey=?, productId=? WHERE id=? and churchId=?";
+        const params = [gateway.provider, gateway.publicKey, gateway.privateKey, gateway.productId, gateway.id, gateway.churchId];
         await DB.query(sql, params);
         return gateway;
     }
@@ -30,7 +30,6 @@ export class GatewayRepository {
     public delete(churchId: string, id: string) {
         return DB.query("DELETE FROM gateways WHERE id=? AND churchId=?;", [id, churchId]);
     }
-
 
     public load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM gateways WHERE id=? AND churchId=?;", [id, churchId]);
@@ -41,7 +40,7 @@ export class GatewayRepository {
     }
 
     public convertToModel(churchId: string, data: any) {
-        const result: Gateway = { id: data.id, provider: data.provider, publicKey: data.publicKey };
+        const result: Gateway = { id: data.id, provider: data.provider, publicKey: data.publicKey, webhookKey: data.webhookKey, productId: data.productId };
         return result;
     }
 

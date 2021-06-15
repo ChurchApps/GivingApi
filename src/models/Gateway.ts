@@ -4,4 +4,6 @@ export class Gateway {
     public provider?: string;
     public publicKey?: string;
     public privateKey?: string;
+    public webhookKey?: string;
+    public productId?: string;
 }
