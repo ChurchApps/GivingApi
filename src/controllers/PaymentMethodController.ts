@@ -13,7 +13,7 @@ export class PaymentMethodController extends GivingBaseController {
             const secretKey = await this.loadPrivateKey(au.churchId);
             if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
             else {
-                const customer = await this.repositories.customer.load(au.churchId, id);
+                const customer = await this.repositories.customer.loadByPersonId(au.churchId, id);
                 return customer ? await StripeHelper.getCustomerPaymentMethods(secretKey, customer) : [];
             }
         });

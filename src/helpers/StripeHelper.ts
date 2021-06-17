@@ -7,32 +7,33 @@ export class StripeHelper {
     static donate = async (secretKey: string, payment: PaymentDetails) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
         payment.amount = payment.amount * 100;
-        try {
-            if (payment?.payment_method) return await stripe.paymentIntents.create(payment);
-            if (payment?.source) return await stripe.charges.create(payment);
-        } catch (err) {
-            console.log('Error: ', err);
-        }
+        if (payment?.payment_method) return await stripe.paymentIntents.create(payment);
+        if (payment?.source) return await stripe.charges.create(payment);
     }
 
     static createSubscription = async (secretKey: string, donationData: any) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
-        const cardPayment = { default_payment_method: donationData.payment_method_id };
-        const bankPayment = { default_source: donationData.payment_method_id };
-        const paymentMethod = donationData.type === 'card' ? cardPayment : bankPayment;
-        const subscriptionData = {
-            customer: donationData.customer,
-            metadata: donationData.metadata,
+        const { customer, metadata, productId, interval, amount, payment_method_id, type } = donationData;
+        const subscriptionData: any = {
+            customer,
+            metadata,
             items: [{
                 price_data: {
                   currency: 'usd',
-                  product: donationData.productId,
-                  recurring: donationData.interval,
-                  unit_amount: donationData.amount * 100
+                  product: productId,
+                  recurring: interval,
+                  unit_amount: amount * 100
               }
             }],
         };
-        return await stripe.subscriptions.create({...subscriptionData, ...paymentMethod});
+        if (type === 'card') subscriptionData.default_payment_method = payment_method_id;
+        if (type === 'bank') subscriptionData.default_source = payment_method_id;
+        return await stripe.subscriptions.create(subscriptionData);
+    }
+
+    static getCharge = async (secretKey: string, chargeId: string) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.charges.retrieve(chargeId);
     }
 
     static createProduct = async (secretKey: string, churchId: string) => {

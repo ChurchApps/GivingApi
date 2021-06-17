@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
 import { EncryptionHelper } from "../apiBase/helpers";
-import { Donation, FundDonation, Fund, DonationBatch, PaymentDetails, EventLog, Subscription, SubscriptionFund } from "../models";
+import { Donation, FundDonation, DonationBatch, PaymentDetails, EventLog, Subscription, SubscriptionFund } from "../models";
 
 @controller("/donate")
 export class DonateController extends GivingBaseController {
@@ -15,49 +15,65 @@ export class DonateController extends GivingBaseController {
             const secretKey = await this.loadPrivateKey(req.body.donation.churchId);
             const { donation, fundData } = req.body;
             if (secretKey === "") return this.json({}, 401);
-            this.logDonation(donation, fundData);
+            this.logDonation(donation, [fundData]);
         });
     }
 
     @httpPost("/webhook/:provider")
-    public async init(req: express.Request<{}, {}, null>, res: express.Response): Promise<any> {
+    public async init(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapperAnon(req, res, async () => {
             const churchId = req.query.churchId.toString();
             const gateways = await this.repositories.gateway.loadAll(churchId);
             if (!gateways.length) return this.json({}, 401);
+
             const gateway = gateways[0];
             const secretKey = EncryptionHelper.decrypt(gateway.privateKey);
             if (secretKey === "") return this.json({}, 401);
+
+            // Verify webhook source
             const sig = req.headers["stripe-signature"].toString();
             const webhookKey = EncryptionHelper.decrypt(gateway.webhookKey);
-            const stripeEvent: Stripe.Event = await StripeHelper.verifySignature(gateway.secretKey, req, sig, webhookKey);
-            const eventData = stripeEvent.data.object as any; // https://github.com/stripe/stripe-node/issues/758
-            const { created, customer, status, amount, description, metadata, subscription, failure_message, outcome, billing_reason } = eventData; // seller_message
-            const subscriptionEvent = subscription || description.toLowerCase().includes('subscription');
+            const stripeEvent: Stripe.Event = await StripeHelper.verifySignature(secretKey, req, sig, webhookKey);
 
-            // Ignore subscription charge.succeeded events in place of invoice.paid for access to subscription data
+            const eventData = stripeEvent.data.object as any; // https://github.com/stripe/stripe-node/issues/758
+
+            // Ignore charge.succeeded from subscription events in place of invoice.paid for access to subscription id
+            const subscriptionEvent = eventData.subscription || eventData.description?.toLowerCase().includes('subscription');
             if (stripeEvent.type === 'charge.succeeded' && subscriptionEvent) return this.json({}, 200);
 
-            let message = '';
-            if (billing_reason) message = billing_reason + ' ' + status;
-            else message = failure_message ? failure_message + ' ' + outcome.seller_message : outcome.seller_message;
+            const { created, customer, status, amount, metadata, failure_message, outcome, payment_method_details } = eventData;
+            const { amount_paid, subscription, billing_reason, charge } = eventData; // invoice.paid specific data
 
+            let paymentMethodDetails = payment_method_details;
+            if (charge) { // Get payment method info from charge data since it doesn't exist on invoice.paid
+                const chargeData = await StripeHelper.getCharge(secretKey, charge);
+                paymentMethodDetails = chargeData.payment_method_details;
+            }
+
+            // Extract payment details
             const methodTypes: any = { ach_debit: 'ACH Debit', card: 'Card' };
-            const method = methodTypes[eventData.type];
-            const methodDetails = method.last4;
-            const donationDate = new Date(created * 1000); // Unix timestamp
-            const customerData = await this.repositories.customer.load(churchId, customer);
-            const donation: Donation = { amount, churchId, personId: customerData.personId, method, methodDetails, donationDate };
+            const paymentType = paymentMethodDetails.type;
+            const method = methodTypes[paymentType];
+            const methodDetails = paymentMethodDetails[paymentType].last4;
 
+            const donationDate = new Date(created * 1000); // Unix timestamp
+
+            // Log event
             const existingEvent = await this.repositories.eventLog.load(churchId, stripeEvent.id);
             if (!existingEvent) {
+                let message = billing_reason + ' ' + status;
+                if (!billing_reason) message = failure_message ? failure_message + ' ' + outcome.seller_message : outcome.seller_message;
                 const eventLog: EventLog = { id: stripeEvent.id, churchId, customerId: customer, provider: 'Stripe', eventType: stripeEvent.type, status, message, created: donationDate };
                 await this.repositories.eventLog.create(eventLog)
             }
 
+            // Log donation
             if (stripeEvent.type === 'charge.succeeded' || stripeEvent.type === 'invoice.paid') {
+                const donationAmount = (amount || amount_paid) / 100;
+                const customerData = await this.repositories.customer.load(churchId, customer);
+                const donation: Donation = { amount: donationAmount, churchId, personId: customerData.personId, method, methodDetails, donationDate };
                 const funds = metadata.funds ? JSON.parse(metadata.funds) : await this.repositories.subscriptionFund.loadBySubscriptionId(churchId, subscription);
-                this.logDonation(donation, funds);
+                await this.logDonation(donation, funds);
             }
         });
     }
@@ -68,17 +84,14 @@ export class DonateController extends GivingBaseController {
             const secretKey = await this.loadPrivateKey(au.churchId);
             if (secretKey === "") return this.json({}, 401);
             const donationData = req.body;
-            const paymentData: PaymentDetails = { amount: donationData.amount, currency: 'usd', customer: donationData.customerId };
             const fundDonations: FundDonation[] = donationData.funds;
+            const paymentData: PaymentDetails = { amount: donationData.amount, currency: 'usd', customer: donationData.customerId, metadata: { funds: JSON.stringify(fundDonations) } };
             if (donationData.type === 'card') {
                 paymentData.payment_method = donationData.id;
                 paymentData.confirm = true;
                 paymentData.off_session = true;
             }
-            if (donationData.type === 'bank') {
-                paymentData.source = donationData.id;
-                paymentData.metadata = { funds: JSON.stringify(fundDonations) };
-            }
+            if (donationData.type === 'bank') paymentData.source = donationData.id;
             return await StripeHelper.donate(secretKey, paymentData);
         });
     }
@@ -88,28 +101,35 @@ export class DonateController extends GivingBaseController {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
             if (secretKey === "") return this.json({}, 401);
-            const donationData = req.body;
-            const { id, amount, customerId, type, billing_cycle_anchor, proration_behavior, interval, } = donationData;
-            const paymentData: PaymentDetails = { payment_method_id: id, amount, currency: 'usd', customer: customerId, type, billing_cycle_anchor, proration_behavior, interval,  };
-            const funds: FundDonation[] = donationData.funds;
+
+            const { id, amount, customerId, type, billing_cycle_anchor, proration_behavior, interval, funds, person } = req.body;
+            const paymentData: PaymentDetails = { payment_method_id: id, amount, currency: 'usd', customer: customerId, type, billing_cycle_anchor, proration_behavior, interval };
             const gateways = await this.repositories.gateway.loadAll(au.churchId);
             paymentData.productId = gateways[0].productId;
+
             const stripeSubscription = await StripeHelper.createSubscription(secretKey, paymentData);
-            const subscription: Subscription = { id: stripeSubscription.id, churchId: au.churchId, personId: donationData.person.id, customerId: donationData.customerId };
-            this.repositories.subscription.save(subscription);
-            funds.forEach(fund => {
+            const subscription: Subscription = { id: stripeSubscription.id, churchId: au.churchId, personId: person.id, customerId };
+            await this.repositories.subscription.save(subscription);
+
+            const promises: Promise<SubscriptionFund>[] = [];
+            funds.forEach((fund: FundDonation) => {
                 const subscriptionFund: SubscriptionFund = { churchId: au.churchId, subscriptionId: subscription.id, fundId: fund.id, amount: fund.amount };
-                this.repositories.subscriptionFund.save(subscriptionFund);
+                promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
             });
+            return await Promise.all(promises);
         });
     }
 
-    public logDonation = async (donationData: Donation, fundData: FundDonation) => {
+    private logDonation = async (donationData: Donation, fundData: FundDonation[]) => {
         const batch: DonationBatch = await this.repositories.donationBatch.getOrCreateCurrent(donationData.churchId);
         donationData.batchId = batch.id;
         const donation = await this.repositories.donation.save(donationData);
-        const fundDonation: FundDonation = { churchId: donation.churchId, amount: fundData.amount, donationId: donation.id, fundId: fundData.id };
-        return this.repositories.fundDonation.save(fundDonation);
+        const promises: Promise<FundDonation>[] = [];
+        fundData.forEach((fund: FundDonation) => {
+            const fundDonation: FundDonation = { churchId: donation.churchId, amount: fund.amount, donationId: donation.id, fundId: fund.id };
+            promises.push(this.repositories.fundDonation.save(fundDonation));
+        });
+        return await Promise.all(promises);
     }
 
     private loadPrivateKey = async (churchId: string) => {
