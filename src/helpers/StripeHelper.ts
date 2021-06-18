@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import express from "express";
-import { PaymentDetails } from "../models";
+import { Donation, DonationBatch, EventLog, FundDonation, PaymentDetails } from "../models";
+import { Repositories } from '../repositories';
 
 export class StripeHelper {
 
@@ -115,6 +116,37 @@ export class StripeHelper {
     static async verifySignature(secretKey: string, request: express.Request, sig: string, endpointSecret: string) {
         const stripe = StripeHelper.getStripeObj(secretKey);
         return await stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    }
+
+    static async getPaymentDetails(secretKey: string, eventData: any) {
+        const { payment_method_details } = eventData.payment_method_details ? eventData : await this.getCharge(secretKey, eventData.charge);
+        const methodTypes: any = { ach_debit: 'ACH Debit', card: 'Card' };
+        const paymentType = payment_method_details.type;
+        return { method: methodTypes[paymentType], methodDetails: payment_method_details[paymentType].last4 };
+    }
+
+    static async logEvent(churchId: string, stripeEvent: any, eventData: any) {
+        const { billing_reason, status, failure_message, outcome, created, customer } = eventData;
+        let message = billing_reason + ' ' + status;
+        if (!billing_reason) message = failure_message ? failure_message + ' ' + outcome.seller_message : outcome.seller_message;
+        const eventLog: EventLog = { id: stripeEvent.id, churchId, customerId: customer, provider: 'Stripe', eventType: stripeEvent.type, status, message, created: new Date(created * 1000) };
+        return Repositories.getCurrent().eventLog.create(eventLog);
+    }
+
+    static async logDonation(secretKey: string, churchId: string, eventData: any) {
+        const amount = (eventData.amount || eventData.amount_paid) / 100;
+        const { personId } = await Repositories.getCurrent().customer.load(churchId, eventData.customer);
+        const { method, methodDetails } = await this.getPaymentDetails(secretKey, eventData);
+        const batch: DonationBatch = await Repositories.getCurrent().donationBatch.getOrCreateCurrent(churchId);
+        const donationData: Donation = { batchId: batch.id, amount, churchId, personId, method, methodDetails, donationDate: new Date(eventData.created * 1000) };
+        const funds = eventData.metadata.funds ? JSON.parse(eventData.metadata.funds) : await Repositories.getCurrent().subscriptionFund.loadBySubscriptionId(churchId, eventData.subscription);
+        const donation: Donation = await Repositories.getCurrent().donation.save(donationData);
+        const promises: Promise<FundDonation>[] = [];
+        funds.forEach((fund: FundDonation) => {
+            const fundDonation: FundDonation = { churchId, amount: fund.amount, donationId: donation.id, fundId: fund.id };
+            promises.push(Repositories.getCurrent().fundDonation.save(fundDonation));
+        });
+        return await Promise.all(promises);
     }
 
     private static getStripeObj = (secretKey: string) => {

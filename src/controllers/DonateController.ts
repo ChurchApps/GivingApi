@@ -20,61 +20,23 @@ export class DonateController extends GivingBaseController {
     }
 
     @httpPost("/webhook/:provider")
-    public async init(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async webhook(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapperAnon(req, res, async () => {
             const churchId = req.query.churchId.toString();
             const gateways = await this.repositories.gateway.loadAll(churchId);
             if (!gateways.length) return this.json({}, 401);
-
             const gateway = gateways[0];
             const secretKey = EncryptionHelper.decrypt(gateway.privateKey);
             if (secretKey === "") return this.json({}, 401);
-
-            // Verify webhook source
             const sig = req.headers["stripe-signature"].toString();
             const webhookKey = EncryptionHelper.decrypt(gateway.webhookKey);
             const stripeEvent: Stripe.Event = await StripeHelper.verifySignature(secretKey, req, sig, webhookKey);
-
             const eventData = stripeEvent.data.object as any; // https://github.com/stripe/stripe-node/issues/758
-
-            // Ignore charge.succeeded from subscription events in place of invoice.paid for access to subscription id
             const subscriptionEvent = eventData.subscription || eventData.description?.toLowerCase().includes('subscription');
-            if (stripeEvent.type === 'charge.succeeded' && subscriptionEvent) return this.json({}, 200);
-
-            const { created, customer, status, amount, metadata, failure_message, outcome, payment_method_details } = eventData;
-            const { amount_paid, subscription, billing_reason, charge } = eventData; // invoice.paid specific data
-
-            let paymentMethodDetails = payment_method_details;
-            if (charge) { // Get payment method info from charge data since it doesn't exist on invoice.paid
-                const chargeData = await StripeHelper.getCharge(secretKey, charge);
-                paymentMethodDetails = chargeData.payment_method_details;
-            }
-
-            // Extract payment details
-            const methodTypes: any = { ach_debit: 'ACH Debit', card: 'Card' };
-            const paymentType = paymentMethodDetails.type;
-            const method = methodTypes[paymentType];
-            const methodDetails = paymentMethodDetails[paymentType].last4;
-
-            const donationDate = new Date(created * 1000); // Unix timestamp
-
-            // Log event
+            if (stripeEvent.type === 'charge.succeeded' && subscriptionEvent) return this.json({}, 200); // Ignore charge.succeeded from subscription events in place of invoice.paid for access to subscription id
             const existingEvent = await this.repositories.eventLog.load(churchId, stripeEvent.id);
-            if (!existingEvent) {
-                let message = billing_reason + ' ' + status;
-                if (!billing_reason) message = failure_message ? failure_message + ' ' + outcome.seller_message : outcome.seller_message;
-                const eventLog: EventLog = { id: stripeEvent.id, churchId, customerId: customer, provider: 'Stripe', eventType: stripeEvent.type, status, message, created: donationDate };
-                await this.repositories.eventLog.create(eventLog)
-            }
-
-            // Log donation
-            if (stripeEvent.type === 'charge.succeeded' || stripeEvent.type === 'invoice.paid') {
-                const donationAmount = (amount || amount_paid) / 100;
-                const customerData = await this.repositories.customer.load(churchId, customer);
-                const donation: Donation = { amount: donationAmount, churchId, personId: customerData.personId, method, methodDetails, donationDate };
-                const funds = metadata.funds ? JSON.parse(metadata.funds) : await this.repositories.subscriptionFund.loadBySubscriptionId(churchId, subscription);
-                await this.logDonation(donation, funds);
-            }
+            if (!existingEvent) await StripeHelper.logEvent(churchId, stripeEvent, eventData);
+            if (stripeEvent.type === 'charge.succeeded' || stripeEvent.type === 'invoice.paid') await StripeHelper.logDonation(secretKey, churchId, eventData);
         });
     }
 
