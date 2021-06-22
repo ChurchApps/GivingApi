@@ -8,8 +8,12 @@ export class StripeHelper {
     static donate = async (secretKey: string, payment: PaymentDetails) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
         payment.amount = payment.amount * 100;
-        if (payment?.payment_method) return await stripe.paymentIntents.create(payment);
-        if (payment?.source) return await stripe.charges.create(payment);
+        try {
+            if (payment?.payment_method) return await stripe.paymentIntents.create(payment);
+            if (payment?.source) return await stripe.charges.create(payment);
+        } catch(err) {
+            return err;
+        }
     }
 
     static createSubscription = async (secretKey: string, donationData: any) => {

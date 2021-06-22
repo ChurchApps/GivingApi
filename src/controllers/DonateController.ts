@@ -78,7 +78,8 @@ export class DonateController extends GivingBaseController {
                 const subscriptionFund: SubscriptionFund = { churchId: au.churchId, subscriptionId: subscription.id, fundId: fund.id, amount: fund.amount };
                 promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
             });
-            return await Promise.all(promises);
+            await Promise.all(promises);
+            return stripeSubscription;
         });
     }
 
