@@ -1,50 +1,51 @@
 import Stripe from 'stripe';
-import { CheckoutDetails } from "../models";
-import { UniqueIdHelper } from '../apiBase';
+import express from "express";
+import { Donation, DonationBatch, EventLog, FundDonation, PaymentDetails } from "../models";
+import { Repositories } from '../repositories';
 
 export class StripeHelper {
 
-    static createCheckoutSession = async (secretKey: string, details: CheckoutDetails) => {
-
-        details.successUrl = details.successUrl + "?sessionId={CHECKOUT_SESSION_ID}";
+    static donate = async (secretKey: string, payment: PaymentDetails) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: [
-                {
-                    price_data: {
-                        currency: 'usd',
-                        product_data: { name: 'Donation' },
-                        unit_amount: details.amount * 100, // stripe wants prices in pennies
-                    },
-                    quantity: 1,
-                },
-            ],
-            mode: 'payment',
-            success_url: details.successUrl,
-            cancel_url: details.cancelUrl,
-        });
-        return session.id;
-    }
-
-    static verifySession = async (secretKey: string, sessionId: string) => {
-        const stripe = StripeHelper.getStripeObj(secretKey);
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
-        const payment = await stripe.paymentIntents.retrieve(session.payment_intent.toString());
-
-        const bd = payment.charges.data[0].billing_details;
-        const receiptUrl = payment.charges.data[0].receipt_url;
-
-        return { session, email: bd.email, name: bd.name, receiptUrl };
-    }
-
-    /*
-        static createDonor = async () => {
-            const stripe = StripeHelper.getStripeObj("");
-            const donor: Stripe.Customer = await stripe.customers.create({ description: 'test donor' });
-            console.log(donor.id);
+        payment.amount = payment.amount * 100;
+        try {
+            if (payment?.payment_method) return await stripe.paymentIntents.create(payment);
+            if (payment?.source) return await stripe.charges.create(payment);
+        } catch(err) {
+            return err;
         }
-        */
+    }
+
+    static createSubscription = async (secretKey: string, donationData: any) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        const { customer, metadata, productId, interval, amount, payment_method_id, type } = donationData;
+        const subscriptionData: any = {
+            customer,
+            metadata,
+            items: [{
+                price_data: {
+                  currency: 'usd',
+                  product: productId,
+                  recurring: interval,
+                  unit_amount: amount * 100
+              }
+            }],
+        };
+        if (type === 'card') subscriptionData.default_payment_method = payment_method_id;
+        if (type === 'bank') subscriptionData.default_source = payment_method_id;
+        return await stripe.subscriptions.create(subscriptionData);
+    }
+
+    static getCharge = async (secretKey: string, chargeId: string) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.charges.retrieve(chargeId);
+    }
+
+    static createProduct = async (secretKey: string, churchId: string) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        const product = await stripe.products.create({ name: 'Donation', metadata: { churchId }});
+        return product.id;
+    }
 
     static createCustomer = async (secretKey: string, email: string) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
@@ -97,6 +98,59 @@ export class StripeHelper {
     static async deleteBankAccount(secretKey: string, customerId: string, paymentMethodId: string) {
         const stripe = StripeHelper.getStripeObj(secretKey);
         return await stripe.customers.deleteSource(customerId, paymentMethodId);
+    }
+
+    static async viewWebhooks(secretKey: string) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.webhookEndpoints.list({ limit: 1 });
+    }
+
+    static async createWebhookEndpoint(secretKey: string, webhookUrl: string) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.webhookEndpoints.create({
+          url: webhookUrl,
+          enabled_events: [
+            'invoice.paid',
+            'charge.succeeded',
+            'charge.failed'
+          ],
+        });
+    }
+
+    static async verifySignature(secretKey: string, request: express.Request, sig: string, endpointSecret: string) {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    }
+
+    static async getPaymentDetails(secretKey: string, eventData: any) {
+        const { payment_method_details } = eventData.payment_method_details ? eventData : await this.getCharge(secretKey, eventData.charge);
+        const methodTypes: any = { ach_debit: 'ACH Debit', card: 'Card' };
+        const paymentType = payment_method_details.type;
+        return { method: methodTypes[paymentType], methodDetails: payment_method_details[paymentType].last4 };
+    }
+
+    static async logEvent(churchId: string, stripeEvent: any, eventData: any) {
+        const { billing_reason, status, failure_message, outcome, created, customer } = eventData;
+        let message = billing_reason + ' ' + status;
+        if (!billing_reason) message = failure_message ? failure_message + ' ' + outcome.seller_message : outcome.seller_message;
+        const eventLog: EventLog = { id: stripeEvent.id, churchId, customerId: customer, provider: 'Stripe', eventType: stripeEvent.type, status, message, created: new Date(created * 1000) };
+        return Repositories.getCurrent().eventLog.create(eventLog);
+    }
+
+    static async logDonation(secretKey: string, churchId: string, eventData: any) {
+        const amount = (eventData.amount || eventData.amount_paid) / 100;
+        const { personId } = await Repositories.getCurrent().customer.load(churchId, eventData.customer);
+        const { method, methodDetails } = await this.getPaymentDetails(secretKey, eventData);
+        const batch: DonationBatch = await Repositories.getCurrent().donationBatch.getOrCreateCurrent(churchId);
+        const donationData: Donation = { batchId: batch.id, amount, churchId, personId, method, methodDetails, donationDate: new Date(eventData.created * 1000) };
+        const funds = eventData.metadata.funds ? JSON.parse(eventData.metadata.funds) : await Repositories.getCurrent().subscriptionFund.loadBySubscriptionId(churchId, eventData.subscription);
+        const donation: Donation = await Repositories.getCurrent().donation.save(donationData);
+        const promises: Promise<FundDonation>[] = [];
+        funds.forEach((fund: FundDonation) => {
+            const fundDonation: FundDonation = { churchId, amount: fund.amount, donationId: donation.id, fundId: fund.id };
+            promises.push(Repositories.getCurrent().fundDonation.save(fundDonation));
+        });
+        return await Promise.all(promises);
     }
 
     private static getStripeObj = (secretKey: string) => {

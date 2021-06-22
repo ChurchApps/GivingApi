@@ -6,3 +6,7 @@ export { FundDonation } from './FundDonation';
 export { Gateway } from './Gateway';
 export { CheckoutDetails } from './CheckoutDetails';
 export { Customer } from './Customer';
+export { PaymentDetails } from './PaymentDetails';
+export { EventLog } from './EventLog'
+export { Subscription } from './Subscription';
+export { SubscriptionFund } from './SubscriptionFund';

@@ -1,0 +1,14 @@
+DROP TABLE IF EXISTS `eventLogs`;
+
+CREATE TABLE `eventLogs` (
+  `id` varchar(1024) NOT NULL,
+  `churchId` char(11) DEFAULT NULL,
+  `customerId` varchar(50) DEFAULT NULL,
+  `provider` varchar(50) DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `eventType` varchar(50) DEFAULT NULL,
+  `message` varchar(1024) DEFAULT NULL,
+  `created` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

@@ -7,3 +7,5 @@ export { FundDonationController } from "./FundDonationController";
 export { GatewayController } from "./GatewayController";
 export { DonateController } from "./DonateController";
 export { PaymentMethodController } from "./PaymentMethodController";
+export { CustomerController } from "./CustomerController";
+export { EventLogController } from "./EventLogController";

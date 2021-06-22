@@ -13,7 +13,10 @@ const init = async () => {
     { title: "Fund Donations", file: "fundDonations.mysql" },
     { title: "Donation Batches", file: "donationBatches.mysql" },
     { title: "Gateways", file: "gateways.mysql" },
-    { title: "Customers", file: "customers.mysql" }
+    { title: "Customers", file: "customers.mysql" },
+    { title: "Event Logs", file: "eventLogs.mysql" },
+    { title: "Subscriptions", file: "subscriptions.mysql" },
+    { title: "Subscription Funds", file: "subscriptionFunds.mysql" }
   ];
 
   await DBCreator.init(["Settings"]);

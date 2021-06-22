@@ -4,4 +4,7 @@ export { FundDonationRepository } from "./FundDonationRepository";
 export { FundRepository } from "./FundRepository";
 export { GatewayRepository } from "./GatewayRepository";
 export { CustomerRepository } from "./CustomerRepository";
+export { EventLogRepository } from "./EventLogRepository";
+export { SubscriptionRepository } from "./SubscriptionRepository";
+export { SubscriptionFundsRepository } from "./SubscriptionFundsrepository";
 export { Repositories } from "./Repositories";

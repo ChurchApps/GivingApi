@@ -24,15 +24,15 @@ export class FundRepository {
 
     public async create(fund: Fund) {
         fund.id = UniqueIdHelper.shortId();
-        const sql = "INSERT INTO funds (id, churchId, name, removed) VALUES (?, ?, ?, 0);";
-        const params = [fund.id, fund.churchId, fund.name];
+        const sql = "INSERT INTO funds (id, churchId, name, productId, removed) VALUES (?, ?, ?, ?, 0);";
+        const params = [fund.id, fund.churchId, fund.name, fund.productId];
         await DB.query(sql, params);
         return fund;
     }
 
     public async update(fund: Fund) {
-        const sql = "UPDATE funds SET name=? WHERE id=? and churchId=?";
-        const params = [fund.name, fund.id, fund.churchId];
+        const sql = "UPDATE funds SET name=?, productId=? WHERE id=? and churchId=?";
+        const params = [fund.name, fund.productId, fund.id, fund.churchId];
         await DB.query(sql, params);
         return fund;
     }
@@ -50,7 +50,7 @@ export class FundRepository {
     }
 
     public convertToModel(churchId: string, data: any) {
-        const result: Fund = { id: data.id, name: data.name };
+        const result: Fund = { id: data.id, name: data.name, churchId: data.churchId, productId: data.productId };
         return result;
     }
 

@@ -21,7 +21,11 @@ export class CustomerRepository {
     }
 
     public async load(churchId: string, id: string) {
-        return DB.queryOne("SELECT * FROM customers WHERE personId=? AND churchId=?;", [id, churchId]);
+        return DB.queryOne("SELECT * FROM customers WHERE id=? AND churchId=?;", [id, churchId]);
+    }
+
+    public async loadByPersonId(churchId: string, personId: string) {
+        return DB.queryOne("SELECT * FROM customers WHERE personId=? AND churchId=?;", [personId, churchId]);
     }
 
     public async loadAll(churchId: string) {
