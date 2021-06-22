@@ -6,5 +6,5 @@ export { GatewayRepository } from "./GatewayRepository";
 export { CustomerRepository } from "./CustomerRepository";
 export { EventLogRepository } from "./EventLogRepository";
 export { SubscriptionRepository } from "./SubscriptionRepository";
-export { SubscriptionFundsRepository } from "./SubscriptionFundsrepository";
+export { SubscriptionFundsRepository } from "./SubscriptionFundsRepository";
 export { Repositories } from "./Repositories";
