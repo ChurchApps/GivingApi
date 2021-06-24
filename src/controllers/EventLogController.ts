@@ -1,7 +1,9 @@
-import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } from "inversify-express-utils";
+import { controller, httpPost, httpGet, interfaces, requestParam } from "inversify-express-utils";
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { Permissions } from '../helpers/Permissions'
+import { EventLog } from "../models";
+import { getControllerMethodMetadata } from "inversify-express-utils/dts/utils";
 
 @controller("/eventLog")
 export class EventLogController extends GivingBaseController {
@@ -27,6 +29,19 @@ export class EventLogController extends GivingBaseController {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
             else return this.repositories.eventLog.convertAllToModel(await this.repositories.eventLog.loadAll(au.churchId));
+        });
+    }
+
+    @httpPost("/")
+    public async save(req: express.Request<{}, {}, EventLog[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        return this.actionWrapper(req, res, async (au) => {
+            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
+            else {
+                const promises: Promise<EventLog>[] = [];
+                req.body.forEach(eventLog => { eventLog.churchId = au.churchId; promises.push(this.repositories.eventLog.save(eventLog)); });
+                const result = await Promise.all(promises);
+                return this.repositories.eventLog.convertAllToModel(result);
+            }
         });
     }
 
