@@ -9,6 +9,7 @@ CREATE TABLE `eventLogs` (
   `eventType` varchar(50) DEFAULT NULL,
   `message` varchar(1024) DEFAULT NULL,
   `created` datetime DEFAULT NULL,
+  `resolved` boolean DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

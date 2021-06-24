@@ -8,4 +8,5 @@ export class EventLog {
     public status?: string;
     public message?: string;
     public created?: Date;
+    public resolved?: boolean;
 }
