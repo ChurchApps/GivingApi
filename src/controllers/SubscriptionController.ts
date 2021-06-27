@@ -16,16 +16,6 @@ export class SubscriptionController extends GivingBaseController {
         });
     }
 
-    @httpGet("/:id/subscriptions")
-    public async getSubscriptions(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
-        return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
-            const secretKey = await this.loadPrivateKey(au.churchId);
-            if (secretKey === "") return this.json({}, 401);
-            else return await StripeHelper.getCustomerSubscriptions(secretKey, id);
-        });
-    }
-
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {

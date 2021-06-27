@@ -16,12 +16,16 @@ export class SubscriptionRepository {
         ).then(() => { return subscription; });
     }
 
-    public async delete(id: string, churchId: string) {
+    public async delete(churchId: string, id: string) {
         DB.query("DELETE FROM subscriptions WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
     public async load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM subscriptions WHERE id=? AND churchId=?;", [id, churchId]);
+    }
+
+    public async loadByCustomerId(churchId: string, customerId: string) {
+        return DB.queryOne("SELECT * FROM subscriptions WHERE customerId=? AND churchId=?;", [customerId, churchId]);
     }
 
     public async loadAll(churchId: string) {

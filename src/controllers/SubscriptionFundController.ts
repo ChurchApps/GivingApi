@@ -43,5 +43,4 @@ export class SubscriptionFundController extends GivingBaseController {
         });
     }
 
-
 }

@@ -36,6 +36,24 @@ export class StripeHelper {
         return await stripe.subscriptions.create(subscriptionData);
     }
 
+    static updateSubscription = async (secretKey: string, sub: any) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        const paymentMethod: any = { default_payment_method: null, default_source: null };
+        if (sub.default_payment_method) paymentMethod.default_payment_method = sub.default_payment_method;
+        if (sub.default_source) paymentMethod.default_source = sub.default_source;
+        return await stripe.subscriptions.update(sub.id, paymentMethod);
+    }
+
+    static deleteSubscription = async (secretKey: string, subscriptionId: string) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.subscriptions.del(subscriptionId);
+    }
+
+    static getCustomerSubscriptions = async (secretKey: string, customerId: string) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.subscriptions.list({ customer: customerId });
+    }
+
     static getCharge = async (secretKey: string, chargeId: string) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
         return await stripe.charges.retrieve(chargeId);
