@@ -175,7 +175,7 @@ export class StripeHelper {
         const { personId } = await Repositories.getCurrent().customer.load(churchId, eventData.customer);
         const { method, methodDetails } = await this.getPaymentDetails(secretKey, eventData);
         const batch: DonationBatch = await Repositories.getCurrent().donationBatch.getOrCreateCurrent(churchId);
-        const donationData: Donation = { batchId: batch.id, amount, churchId, personId, method, methodDetails, donationDate: new Date(eventData.created * 1000) };
+        const donationData: Donation = { batchId: batch.id, amount, churchId, personId, method, methodDetails, donationDate: new Date(eventData.created * 1000), notes: eventData?.metadata?.notes };
         const funds = eventData.metadata.funds ? JSON.parse(eventData.metadata.funds) : await Repositories.getCurrent().subscriptionFund.loadBySubscriptionId(churchId, eventData.subscription);
         const donation: Donation = await Repositories.getCurrent().donation.save(donationData);
         const promises: Promise<FundDonation>[] = [];

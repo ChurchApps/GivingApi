@@ -47,7 +47,7 @@ export class DonateController extends GivingBaseController {
             if (secretKey === "") return this.json({}, 401);
             const donationData = req.body;
             const fundDonations: FundDonation[] = donationData.funds;
-            const paymentData: PaymentDetails = { amount: donationData.amount, currency: 'usd', customer: donationData.customerId, metadata: { funds: JSON.stringify(fundDonations) } };
+            const paymentData: PaymentDetails = { amount: donationData.amount, currency: 'usd', customer: donationData.customerId, metadata: { funds: JSON.stringify(fundDonations), notes: donationData.notes } };
             if (donationData.type === 'card') {
                 paymentData.payment_method = donationData.id;
                 paymentData.confirm = true;
