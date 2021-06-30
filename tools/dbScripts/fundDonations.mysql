@@ -6,6 +6,5 @@ CREATE TABLE `fundDonations` (
   `donationId` char(11) DEFAULT NULL,
   `fundId` char(11) DEFAULT NULL,
   `amount` double DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

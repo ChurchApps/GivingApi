@@ -7,7 +7,7 @@ import { EventLog } from "../models";
 export class EventLogRepository {
 
     public async save(eventLog: EventLog) {
-        if (UniqueIdHelper.isMissing(eventLog.id)) return this.create(eventLog); else return this.update(eventLog);
+        return eventLog.id ? this.update(eventLog) : this.create(eventLog);
     }
 
     public async create(eventLog: EventLog) {
@@ -17,7 +17,7 @@ export class EventLogRepository {
         ).then(() => { return eventLog; });
     }
 
-    public async update(eventLog: EventLog) {
+    private async update(eventLog: EventLog) {
         const sql = "UPDATE eventLogs SET resolved=? WHERE id=? and churchId=?";
         const params = [eventLog.resolved, eventLog.id, eventLog.churchId];
         await DB.query(sql, params);

@@ -7,10 +7,10 @@ import { SubscriptionFund } from "../models";
 export class SubscriptionFundsRepository {
 
     public async save(subscriptionFund: SubscriptionFund) {
-        if (UniqueIdHelper.isMissing(subscriptionFund.id)) return this.create(subscriptionFund); else return this.update(subscriptionFund);
+        return subscriptionFund.id ? this.update(subscriptionFund) : this.create(subscriptionFund);
     }
 
-    public async create(subscriptionFund: SubscriptionFund) {
+    private async create(subscriptionFund: SubscriptionFund) {
         subscriptionFund.id = UniqueIdHelper.shortId();
         return DB.query(
             "INSERT INTO subscriptionFunds (id, churchId, subscriptionId, fundId, amount) VALUES (?, ?, ?, ?, ?);",
@@ -18,7 +18,7 @@ export class SubscriptionFundsRepository {
         ).then(() => { return subscriptionFund; });
     }
 
-    public async update(subscriptionFund: SubscriptionFund) {
+    private async update(subscriptionFund: SubscriptionFund) {
         const sql = "UPDATE subscriptionFund SET churchId=?, subscriptionId=?, fundId=?, amount=? WHERE id=? and churchId=?";
         const params = [subscriptionFund.churchId, subscriptionFund.subscriptionId, subscriptionFund.fundId, subscriptionFund.amount];
         await DB.query(sql, params)

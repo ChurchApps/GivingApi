@@ -9,10 +9,10 @@ export class DonationRepository {
 
     public save(donation: Donation) {
         if (donation.personId === "") donation.personId = null;
-        if (UniqueIdHelper.isMissing(donation.id)) return this.create(donation); else return this.update(donation);
+        return donation.id ? this.update(donation) : this.create(donation);
     }
 
-    public async create(donation: Donation) {
+    private async create(donation: Donation) {
         donation.id = UniqueIdHelper.shortId();
         const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
         const sql = "INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
@@ -21,7 +21,7 @@ export class DonationRepository {
         return donation;
     }
 
-    public async update(donation: Donation) {
+    private async update(donation: Donation) {
         const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
         const sql = "UPDATE donations SET batchId=?, personId=?, donationDate=?, amount=?, method=?, methodDetails=?, notes=? WHERE id=? and churchId=?";
         const params = [donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes, donation.id, donation.churchId]

@@ -8,10 +8,10 @@ import { UniqueIdHelper } from "../helpers";
 export class GatewayRepository {
 
     public save(gateway: Gateway) {
-        if (UniqueIdHelper.isMissing(gateway.id)) return this.create(gateway); else return this.update(gateway);
+        return gateway.id ? this.update(gateway) : this.create(gateway);
     }
 
-    public async create(gateway: Gateway) {
+    private async create(gateway: Gateway) {
         gateway.id = UniqueIdHelper.shortId();
         await DB.query("DELETE FROM gateways WHERE churchId=? AND id<>?;", [gateway.churchId, gateway.id]);  // enforce a single record per church (for now)
         const sql = "INSERT INTO gateways (id, churchId, provider, publicKey, privateKey, webhookKey, productId) VALUES (?, ?, ?, ?, ?, ?, ?);";
@@ -20,7 +20,7 @@ export class GatewayRepository {
         return gateway;
     }
 
-    public async update(gateway: Gateway) {
+    private async update(gateway: Gateway) {
         const sql = "UPDATE gateways SET provider=?, publicKey=?, privateKey=?, productId=? WHERE id=? and churchId=?";
         const params = [gateway.provider, gateway.publicKey, gateway.privateKey, gateway.productId, gateway.id, gateway.churchId];
         await DB.query(sql, params);

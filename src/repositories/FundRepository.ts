@@ -19,10 +19,10 @@ export class FundRepository {
     }
 
     public save(fund: Fund) {
-        if (UniqueIdHelper.isMissing(fund.id)) return this.create(fund); else return this.update(fund);
+        return fund.id ? this.update(fund) : this.create(fund);
     }
 
-    public async create(fund: Fund) {
+    private async create(fund: Fund) {
         fund.id = UniqueIdHelper.shortId();
         const sql = "INSERT INTO funds (id, churchId, name, productId, removed) VALUES (?, ?, ?, ?, 0);";
         const params = [fund.id, fund.churchId, fund.name, fund.productId];
@@ -30,7 +30,7 @@ export class FundRepository {
         return fund;
     }
 
-    public async update(fund: Fund) {
+    private async update(fund: Fund) {
         const sql = "UPDATE funds SET name=?, productId=? WHERE id=? and churchId=?";
         const params = [fund.name, fund.productId, fund.id, fund.churchId];
         await DB.query(sql, params);
