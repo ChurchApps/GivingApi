@@ -9,7 +9,7 @@ export class SubscriptionRepository {
         return this.create(subscription);
     }
 
-    public async create(subscription: Subscription) {
+    private async create(subscription: Subscription) {
         return DB.query(
             "INSERT INTO subscriptions (id, churchId, personId, customerId) VALUES (?, ?, ?, ?);",
             [subscription.id, subscription.churchId, subscription.personId, subscription.customerId]

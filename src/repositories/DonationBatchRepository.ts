@@ -18,10 +18,10 @@ export class DonationBatchRepository {
     }
 
     public save(donationBatch: DonationBatch) {
-        if (UniqueIdHelper.isMissing(donationBatch.id)) return this.create(donationBatch); else return this.update(donationBatch);
+        return donationBatch.id ? this.update(donationBatch) : this.create(donationBatch);
     }
 
-    public async create(donationBatch: DonationBatch) {
+    private async create(donationBatch: DonationBatch) {
         donationBatch.id = UniqueIdHelper.shortId();
         const batchDate = DateTimeHelper.toMysqlDate(donationBatch.batchDate);
         const sql = "INSERT INTO donationBatches (id, churchId, name, batchDate) VALUES (?, ?, ?, ?);";
@@ -30,7 +30,7 @@ export class DonationBatchRepository {
         return donationBatch;
     }
 
-    public async update(donationBatch: DonationBatch) {
+    private async update(donationBatch: DonationBatch) {
         const batchDate = DateTimeHelper.toMysqlDate(donationBatch.batchDate);
         const sql = "UPDATE donationBatches SET name=?, batchDate=? WHERE id=? and churchId=?";
         const params = [donationBatch.name, batchDate, donationBatch.id, donationBatch.churchId];

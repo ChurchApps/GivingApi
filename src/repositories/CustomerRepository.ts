@@ -9,7 +9,7 @@ export class CustomerRepository {
         return this.create(customer);
     }
 
-    public async create(customer: Customer) {
+    private async create(customer: Customer) {
         return DB.query(
             "INSERT INTO customers (id, churchId, personId) VALUES (?, ?, ?);",
             [customer.id, customer.churchId, customer.personId]

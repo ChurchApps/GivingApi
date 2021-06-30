@@ -7,10 +7,10 @@ import { UniqueIdHelper, DateTimeHelper } from "../helpers";
 export class FundDonationRepository {
 
     public save(fundDonation: FundDonation) {
-        if (UniqueIdHelper.isMissing(fundDonation.id)) return this.create(fundDonation); else return this.update(fundDonation);
+        return fundDonation.id ? this.update(fundDonation) : this.create(fundDonation);
     }
 
-    public async create(fundDonation: FundDonation) {
+    private async create(fundDonation: FundDonation) {
         fundDonation.id = UniqueIdHelper.shortId();
         const sql = "INSERT INTO fundDonations (id, churchId, donationId, fundId, amount) VALUES (?, ?, ?, ?, ?);";
         const params = [fundDonation.id, fundDonation.churchId, fundDonation.donationId, fundDonation.fundId, fundDonation.amount];
@@ -18,7 +18,7 @@ export class FundDonationRepository {
         return fundDonation;
     }
 
-    public async update(fundDonation: FundDonation) {
+    private async update(fundDonation: FundDonation) {
         const sql = "UPDATE fundDonations SET donationId=?, fundId=?, amount=? WHERE id=? and churchId=?";
         const params = [fundDonation.donationId, fundDonation.fundId, fundDonation.amount, fundDonation.id, fundDonation.churchId];
         await DB.query(sql, params);
