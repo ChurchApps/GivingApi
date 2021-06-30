@@ -36,6 +36,39 @@ export class StripeHelper {
         return await stripe.subscriptions.create(subscriptionData);
     }
 
+    static updateSubscription = async (secretKey: string, sub: any) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        const paymentMethod: any = {
+            default_payment_method: sub.default_payment_method || null,
+            default_source: sub.default_source || null
+        };
+        const priceData = {
+            items: [{
+                id: sub.items.data[0].id,
+                price_data: {
+                    product: sub.plan.product,
+                    unit_amount: sub.plan.amount,
+                    currency: 'usd',
+                    recurring: {
+                        interval: sub.plan.interval,
+                        interval_count: sub.plan.interval_count
+                    }
+                }
+            }]
+        }
+        return await stripe.subscriptions.update(sub.id, {...paymentMethod, ...priceData});
+    }
+
+    static deleteSubscription = async (secretKey: string, subscriptionId: string) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.subscriptions.del(subscriptionId);
+    }
+
+    static getCustomerSubscriptions = async (secretKey: string, customerId: string) => {
+        const stripe = StripeHelper.getStripeObj(secretKey);
+        return await stripe.subscriptions.list({ customer: customerId });
+    }
+
     static getCharge = async (secretKey: string, chargeId: string) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
         return await stripe.charges.retrieve(chargeId);
@@ -142,7 +175,7 @@ export class StripeHelper {
         const { personId } = await Repositories.getCurrent().customer.load(churchId, eventData.customer);
         const { method, methodDetails } = await this.getPaymentDetails(secretKey, eventData);
         const batch: DonationBatch = await Repositories.getCurrent().donationBatch.getOrCreateCurrent(churchId);
-        const donationData: Donation = { batchId: batch.id, amount, churchId, personId, method, methodDetails, donationDate: new Date(eventData.created * 1000) };
+        const donationData: Donation = { batchId: batch.id, amount, churchId, personId, method, methodDetails, donationDate: new Date(eventData.created * 1000), notes: eventData?.metadata?.notes };
         const funds = eventData.metadata.funds ? JSON.parse(eventData.metadata.funds) : await Repositories.getCurrent().subscriptionFund.loadBySubscriptionId(churchId, eventData.subscription);
         const donation: Donation = await Repositories.getCurrent().donation.save(donationData);
         const promises: Promise<FundDonation>[] = [];

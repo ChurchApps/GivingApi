@@ -9,3 +9,5 @@ export { DonateController } from "./DonateController";
 export { PaymentMethodController } from "./PaymentMethodController";
 export { CustomerController } from "./CustomerController";
 export { EventLogController } from "./EventLogController";
+export { SubscriptionController } from "./SubscriptionController";
+export { SubscriptionFundController } from "./SubscriptionFundController";

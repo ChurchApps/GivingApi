@@ -29,12 +29,19 @@ export class SubscriptionFundsRepository {
         DB.query("DELETE FROM subscriptionFunds WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
+    public async deleteBySubscriptionId(churchId: string, subscriptionId: string) {
+        DB.query("DELETE FROM subscriptionFunds WHERE subscriptionId=? AND churchId=?;", [subscriptionId, churchId]);
+    }
+
     public async load(id: string, churchId: string) {
         return DB.queryOne("SELECT * FROM subscriptionFunds WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
     public loadBySubscriptionId(churchId: string, subscriptionId: string) {
-        return DB.query("SELECT * FROM subscriptionFunds WHERE churchId=? AND subscriptionId=?;", [churchId, subscriptionId]);
+        const sql = "SELECT subscriptionFunds.*, funds.name FROM subscriptionFunds"
+            + " LEFT JOIN funds ON subscriptionFunds.fundId = funds.id"
+            + " WHERE subscriptionFunds.churchId=? AND subscriptionFunds.subscriptionId=?";
+        return DB.query(sql, [churchId, subscriptionId]);
     }
 
     public async loadAll(churchId: string) {

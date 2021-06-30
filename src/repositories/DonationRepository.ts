@@ -73,7 +73,6 @@ export class DonationRepository {
         return DB.query(sql, [churchId, sDate, eDate]);
     }
 
-
     public convertToModel(churchId: string, data: any) {
         const result: Donation = { id: data.id, batchId: data.batchId, personId: data.personId, donationDate: data.donationDate, amount: data.amount, method: data.method, methodDetails: data.methodDetails, notes: data.notes };
         if (data.fundName !== undefined) result.fund = { id: data.fundId, name: data.fundName };
