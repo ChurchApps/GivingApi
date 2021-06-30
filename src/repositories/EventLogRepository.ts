@@ -10,7 +10,7 @@ export class EventLogRepository {
         return eventLog.id ? this.update(eventLog) : this.create(eventLog);
     }
 
-    private async create(eventLog: EventLog) {
+    public async create(eventLog: EventLog) {
         return DB.query(
             "INSERT INTO eventLogs (id, churchId, customerId, provider, eventType, message, status, created, resolved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
             [eventLog.id, eventLog.churchId, eventLog.customerId, eventLog.provider, eventLog.eventType, eventLog.message, eventLog.status, eventLog.created, false]
