@@ -38,10 +38,25 @@ export class StripeHelper {
 
     static updateSubscription = async (secretKey: string, sub: any) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
-        const paymentMethod: any = { default_payment_method: null, default_source: null };
-        if (sub.default_payment_method) paymentMethod.default_payment_method = sub.default_payment_method;
-        if (sub.default_source) paymentMethod.default_source = sub.default_source;
-        return await stripe.subscriptions.update(sub.id, paymentMethod);
+        const paymentMethod: any = {
+            default_payment_method: sub.default_payment_method || null,
+            default_source: sub.default_source || null
+        };
+        const priceData = {
+            items: [{
+                id: sub.items.data[0].id,
+                price_data: {
+                    product: sub.plan.product,
+                    unit_amount: sub.plan.amount,
+                    currency: 'usd',
+                    recurring: {
+                        interval: sub.plan.interval,
+                        interval_count: sub.plan.interval_count
+                    }
+                }
+            }]
+        }
+        return await stripe.subscriptions.update(sub.id, {...paymentMethod, ...priceData});
     }
 
     static deleteSubscription = async (secretKey: string, subscriptionId: string) => {
