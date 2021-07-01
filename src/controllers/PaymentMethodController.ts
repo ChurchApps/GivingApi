@@ -25,14 +25,14 @@ export class PaymentMethodController extends GivingBaseController {
             const secretKey = await this.loadPrivateKey(au.churchId);
             if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
             else {
-                const { id, personId, customerId, email } = req.body;
+                const { id, personId, customerId, email, name } = req.body;
                 let customer = customerId;
                 if (!customer) {
-                    customer = await StripeHelper.createCustomer(secretKey, email);
+                    customer = await StripeHelper.createCustomer(secretKey, email, name);
                     this.repositories.customer.save({ id: customer, churchId: au.churchId, personId });
                 }
-                const stripePaymentMethod = await StripeHelper.attachPaymentMethod(secretKey, id, {customer});
-                return stripePaymentMethod;
+                try { return await StripeHelper.attachPaymentMethod(secretKey, id, {customer}); }
+                catch (e) { return e; }
             }
         });
     }
@@ -55,18 +55,14 @@ export class PaymentMethodController extends GivingBaseController {
             const secretKey = await this.loadPrivateKey(au.churchId);
             if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
             else {
-                const { id, personId, customerId, email } = req.body;
+                const { id, personId, customerId, email, name } = req.body;
                 let customer = customerId;
                 if (!customer) {
-                    customer = await StripeHelper.createCustomer(secretKey, email);
+                    customer = await StripeHelper.createCustomer(secretKey, email, name);
                     this.repositories.customer.save({ id: customer, churchId: au.churchId, personId });
                 }
-                try {
-                    const bankAccount = await StripeHelper.createBankAccount(secretKey, customer, {source: id})
-                    return bankAccount;
-                } catch (e) {
-                    return e;
-                }
+                try { return await StripeHelper.createBankAccount(secretKey, customer, {source: id}) }
+                catch (e) { return e; }
             }
         });
     }
@@ -90,11 +86,8 @@ export class PaymentMethodController extends GivingBaseController {
             if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
             else {
                 const { paymentMethodId, customerId, amountData } = req.body;
-                try {
-                    return await StripeHelper.verifyBank(secretKey, paymentMethodId, amountData, customerId);
-                } catch(e) {
-                    return e;
-                }
+                try { return await StripeHelper.verifyBank(secretKey, paymentMethodId, amountData, customerId); }
+                catch (e) { return e; }
             }
         });
     }
