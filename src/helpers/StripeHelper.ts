@@ -80,9 +80,9 @@ export class StripeHelper {
         return product.id;
     }
 
-    static createCustomer = async (secretKey: string, email: string) => {
+    static createCustomer = async (secretKey: string, email: string, name: string) => {
         const stripe = StripeHelper.getStripeObj(secretKey);
-        const customer = await stripe.customers.create({email});
+        const customer = await stripe.customers.create({ email, name });
         return customer.id;
     }
 
