@@ -24,12 +24,11 @@ export class DonateController extends GivingBaseController {
         return this.actionWrapperAnon(req, res, async () => {
             const churchId = req.query.churchId.toString();
             const gateways = await this.repositories.gateway.loadAll(churchId);
-            if (!gateways.length) return this.json({}, 401);
-            const gateway = gateways[0];
-            const secretKey = EncryptionHelper.decrypt(gateway.privateKey);
-            if (secretKey === "") return this.json({}, 401);
+            const secretKey = EncryptionHelper.decrypt(gateways[0].privateKey);
+            if (!gateways.length || secretKey === "") return this.json({}, 401);
+
             const sig = req.headers["stripe-signature"].toString();
-            const webhookKey = EncryptionHelper.decrypt(gateway.webhookKey);
+            const webhookKey = EncryptionHelper.decrypt(gateways[0].webhookKey);
             const stripeEvent: Stripe.Event = await StripeHelper.verifySignature(secretKey, req, sig, webhookKey);
             const eventData = stripeEvent.data.object as any; // https://github.com/stripe/stripe-node/issues/758
             const subscriptionEvent = eventData.subscription || eventData.description?.toLowerCase().includes('subscription');
@@ -64,8 +63,8 @@ export class DonateController extends GivingBaseController {
             const secretKey = await this.loadPrivateKey(au.churchId);
             if (secretKey === "") return this.json({}, 401);
 
-            const { id, amount, customerId, type, billing_cycle_anchor, proration_behavior, interval, funds, person } = req.body;
-            const paymentData: PaymentDetails = { payment_method_id: id, amount, currency: 'usd', customer: customerId, type, billing_cycle_anchor, proration_behavior, interval };
+            const { id, amount, customerId, type, billing_cycle_anchor, proration_behavior, interval, funds, person, notes } = req.body;
+            const paymentData: PaymentDetails = { payment_method_id: id, amount, currency: 'usd', customer: customerId, type, billing_cycle_anchor, proration_behavior, interval, metadata: { notes } };
             const gateways = await this.repositories.gateway.loadAll(au.churchId);
             paymentData.productId = gateways[0].productId;
 
