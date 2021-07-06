@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `subscriptionFunds`;
 
 CREATE TABLE `subscriptionFunds` (
-  `id` varchar(255) NOT NULL,
+  `id` varchar(11) NOT NULL,
   `churchId` varchar(11) NOT NULL,
   `subscriptionId` char(255) DEFAULT NULL,
   `fundId` varchar(11) DEFAULT NULL,
