@@ -4,9 +4,9 @@ CREATE TABLE `gateways` (
   `id` char(11) NOT NULL,
   `churchId` char(11) DEFAULT NULL,
   `provider` varchar(50) DEFAULT NULL,
-  `publicKey` varchar(1024) DEFAULT NULL,
-  `privateKey` varchar(1024) DEFAULT NULL,
-  `webhookKey` varchar(1024) DEFAULT NULL,
-  `productId` varchar(50) DEFAULT NULL,
+  `publicKey` varchar(255) DEFAULT NULL,
+  `privateKey` varchar(255) DEFAULT NULL,
+  `webhookKey` varchar(255) DEFAULT NULL,
+  `productId` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

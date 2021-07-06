@@ -1,13 +1,13 @@
 DROP TABLE IF EXISTS `eventLogs`;
 
 CREATE TABLE `eventLogs` (
-  `id` varchar(1024) NOT NULL,
+  `id` varchar(255) NOT NULL,
   `churchId` char(11) DEFAULT NULL,
-  `customerId` varchar(50) DEFAULT NULL,
+  `customerId` varchar(255) DEFAULT NULL,
   `provider` varchar(50) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `eventType` varchar(50) DEFAULT NULL,
-  `message` varchar(1024) DEFAULT NULL,
+  `message` text,
   `created` datetime DEFAULT NULL,
   `resolved` boolean DEFAULT NULL,
   PRIMARY KEY (`id`)

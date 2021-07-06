@@ -1,9 +1,9 @@
 DROP TABLE IF EXISTS `subscriptions`;
 
 CREATE TABLE `subscriptions` (
-  `id` varchar(1024) NOT NULL,
+  `id` varchar(255) NOT NULL,
   `churchId` char(11) DEFAULT NULL,
   `personId` varchar(11) DEFAULT NULL,
-  `customerId` varchar(50) DEFAULT NULL,
+  `customerId` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
