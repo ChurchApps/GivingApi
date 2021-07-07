@@ -33,7 +33,7 @@ export class EventLogRepository {
     }
 
     public async loadByType(churchId: string, status: string) {
-        return DB.query("SELECT eventLogs.*, personId FROM customers LEFT JOIN eventLogs ON customers.id = eventLogs.customerId WHERE eventLogs.status=? AND eventLogs.churchId=? ORDER BY eventLogs.resolved ASC;", [status, churchId]);
+        return DB.query("SELECT eventLogs.*, personId FROM customers LEFT JOIN eventLogs ON customers.id = eventLogs.customerId WHERE eventLogs.status=? AND eventLogs.churchId=? ORDER BY eventLogs.created DESC;", [status, churchId]);
     }
 
     public async loadAll(churchId: string) {
