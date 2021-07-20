@@ -7,7 +7,8 @@ import { EventLog } from "../models";
 export class EventLogRepository {
 
     public async save(eventLog: EventLog) {
-        return eventLog.id ? this.update(eventLog) : this.create(eventLog);
+        const event = await this.load(eventLog.churchId, eventLog.id);
+        return event ? this.update(eventLog) : this.create(eventLog);
     }
 
     public async create(eventLog: EventLog) {

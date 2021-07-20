@@ -32,9 +32,11 @@ export class GatewayController extends GivingBaseController {
                 const promises: Promise<Gateway>[] = [];
                 await Promise.all(req.body.map(async gateway => {
                     if (gateway.provider === 'Stripe') {
-                        const webHookUrl = req.get('x-forwarded-proto') + '://' + req.hostname + '/donate/webhook/stripe?churchId='+au.churchId;
-                        const webhook = await StripeHelper.createWebhookEndpoint(gateway.privateKey, webHookUrl);
-                        gateway.webhookKey = EncryptionHelper.encrypt(webhook.secret);
+                        if (req.hostname !== 'localhost') {
+                            const webHookUrl = req.get('x-forwarded-proto') + '://' + req.hostname + '/donate/webhook/stripe?churchId='+au.churchId;
+                            const webhook = await StripeHelper.createWebhookEndpoint(gateway.privateKey, webHookUrl);
+                            gateway.webhookKey = EncryptionHelper.encrypt(webhook.secret);
+                        }
                         gateway.productId = await StripeHelper.createProduct(gateway.privateKey, au.churchId);
                     }
                     gateway.churchId = au.churchId;
