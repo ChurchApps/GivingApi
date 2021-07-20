@@ -1,9 +1,8 @@
-import { controller, httpPost, httpGet, interfaces, requestParam } from "inversify-express-utils";
+import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } from "inversify-express-utils";
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { Permissions } from '../helpers/Permissions'
 import { EventLog } from "../models";
-import { getControllerMethodMetadata } from "inversify-express-utils/dts/utils";
 
 @controller("/eventLog")
 export class EventLogController extends GivingBaseController {
@@ -45,4 +44,11 @@ export class EventLogController extends GivingBaseController {
         });
     }
 
+    @httpDelete("/:id")
+    public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        return this.actionWrapper(req, res, async (au) => {
+            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
+            else await this.repositories.eventLog.delete(au.churchId, id);
+        });
+    }
 }
