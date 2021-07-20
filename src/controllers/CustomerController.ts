@@ -1,4 +1,4 @@
-import { controller, httpPost, httpGet, interfaces, requestParam } from "inversify-express-utils";
+import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } from "inversify-express-utils";
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { Permissions } from '../helpers/Permissions'
@@ -31,6 +31,14 @@ export class CustomerController extends GivingBaseController {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
             else return this.repositories.customer.convertAllToModel(au.churchId, await this.repositories.customer.loadAll(au.churchId));
+        });
+    }
+
+    @httpDelete("/:id")
+    public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        return this.actionWrapper(req, res, async (au) => {
+            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
+            else await this.repositories.customer.delete(au.churchId, id);
         });
     }
 
