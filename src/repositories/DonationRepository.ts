@@ -50,7 +50,7 @@ export class DonationRepository {
     }
 
     public loadByPersonId(churchId: string, personId: string) {
-        const sql = "SELECT d.*, f.id as fundId, f.name as fundName"
+        const sql = "SELECT d.*, f.id as fundId, f.name as fundName, fd.amount as fundAmount"
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
             + " INNER JOIN funds f on f.id = fd.fundId"
@@ -75,7 +75,7 @@ export class DonationRepository {
 
     public convertToModel(churchId: string, data: any) {
         const result: Donation = { id: data.id, batchId: data.batchId, personId: data.personId, donationDate: data.donationDate, amount: data.amount, method: data.method, methodDetails: data.methodDetails, notes: data.notes };
-        if (data.fundName !== undefined) result.fund = { id: data.fundId, name: data.fundName };
+        if (data.fundName !== undefined) result.fund = { id: data.fundId, name: data.fundName, amount: data.fundAmount };
         return result;
     }
 

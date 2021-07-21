@@ -3,4 +3,5 @@ export class Fund {
     public churchId?: string;
     public name?: string;
     public productId?: string;
+    public amount?: number;
 }
