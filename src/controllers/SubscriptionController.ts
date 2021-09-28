@@ -27,22 +27,24 @@ export class SubscriptionController extends GivingBaseController {
     @httpPost("/")
     public async save(req: express.Request<{}, {}, any[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
-            else {
-                const promises: Promise<any>[] = [];
-                const secretKey = await this.loadPrivateKey(au.churchId);
-                req.body.forEach(subscription => { promises.push(StripeHelper.updateSubscription(secretKey, subscription)); });
-                return await Promise.all(promises);
-            }
+            const secretKey = await this.loadPrivateKey(au.churchId);
+            let permission = au.checkAccess(Permissions.donations.edit);
+            const promises: Promise<any>[] = [];
+            req.body.forEach( async subscription => {
+                permission = permission || (await this.repositories.subscription.load(au.churchId, subscription.id)).personId === au.personId;
+                if (permission) promises.push(StripeHelper.updateSubscription(secretKey, subscription));
+            });
+            return await Promise.all(promises);
         });
     }
 
     @httpDelete("/:id")
     public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
+            const secretKey = await this.loadPrivateKey(au.churchId);
+            const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || (await this.repositories.subscription.load(au.churchId, id)).personId === au.personId);
+            if (!permission) return this.json({}, 401);
             else {
-                const secretKey = await this.loadPrivateKey(au.churchId);
                 const promises: Promise<any>[] = [];
                 promises.push(StripeHelper.deleteSubscription(secretKey, id));
                 promises.push(this.repositories.subscription.delete(au.churchId, id));
