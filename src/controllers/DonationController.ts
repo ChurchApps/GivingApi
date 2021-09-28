@@ -1,7 +1,7 @@
-import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete, results } from "inversify-express-utils";
+import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } from "inversify-express-utils";
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
-import { Donation, DonationSummary } from "../models"
+import { Donation } from "../models"
 import { Permissions } from '../helpers/Permissions'
 
 @controller("/donations")
@@ -36,11 +36,12 @@ export class DonationController extends GivingBaseController {
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
+            const personId = req.query?.personId.toString() || "";
+            if (!au.checkAccess(Permissions.donations.view) && personId !== au.personId) return this.json({}, 401);
             else {
                 let result;
                 if (req.query.batchId !== undefined) result = await this.repositories.donation.loadByBatchId(au.churchId, req.query.batchId.toString());
-                else if (req.query.personId !== undefined) result = await this.repositories.donation.loadByPersonId(au.churchId, req.query.personId.toString());
+                else if (personId) result = await this.repositories.donation.loadByPersonId(au.churchId, personId);
                 else result = await this.repositories.donation.loadAll(au.churchId);
                 return this.repositories.donation.convertAllToModel(au.churchId, result);
             }

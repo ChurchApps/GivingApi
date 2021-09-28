@@ -11,7 +11,8 @@ export class PaymentMethodController extends GivingBaseController {
     public async getPersonPaymentMethods(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
+            const permission = secretKey && (au.checkAccess(Permissions.donations.view) || id === au.personId);
+            if (!permission) return this.json({}, 401);
             else {
                 const customer = await this.repositories.customer.loadByPersonId(au.churchId, id);
                 return customer ? await StripeHelper.getCustomerPaymentMethods(secretKey, customer) : [];
@@ -23,9 +24,10 @@ export class PaymentMethodController extends GivingBaseController {
     public async addCard(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
+            const { id, personId, customerId, email, name } = req.body;
+            const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
+            if (!permission) return this.json({}, 401);
             else {
-                const { id, personId, customerId, email, name } = req.body;
                 let customer = customerId;
                 if (!customer) {
                     customer = await StripeHelper.createCustomer(secretKey, email, name);
@@ -40,22 +42,22 @@ export class PaymentMethodController extends GivingBaseController {
     @httpPost("/updatecard")
     public async updateCard(req: express.Request<any>, res: express.Response): Promise<any> {
         return this.actionWrapper(req, res, async (au) => {
+            const { personId, paymentMethodId, cardData } = req.body;
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
-            else {
-                const { paymentMethodId, cardData } = req.body;
-                return await StripeHelper.updateCard(secretKey, paymentMethodId, cardData);
-            }
+            const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
+            if (!permission) return this.json({}, 401);
+            else return await StripeHelper.updateCard(secretKey, paymentMethodId, cardData);
         });
     }
 
     @httpPost("/addbankaccount")
     public async addBankAccount(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
+            const { id, personId, customerId, email, name } = req.body;
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
+            const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
+            if (!permission) return this.json({}, 401);
             else {
-                const { id, personId, customerId, email, name } = req.body;
                 let customer = customerId;
                 if (!customer) {
                     customer = await StripeHelper.createCustomer(secretKey, email, name);
@@ -71,11 +73,10 @@ export class PaymentMethodController extends GivingBaseController {
     public async updateBank(req: express.Request<any>, res: express.Response): Promise<any> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.donations.edit) || secretKey === "") return this.json({}, 401);
-            else {
-                const { paymentMethodId, bankData, customerId } = req.body;
-                return await StripeHelper.updateBank(secretKey, paymentMethodId, bankData, customerId);
-            }
+            const { paymentMethodId, personId, bankData, customerId } = req.body;
+            const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
+            if (!permission) return this.json({}, 401);
+            else return await StripeHelper.updateBank(secretKey, paymentMethodId, bankData, customerId);
         });
     }
 
@@ -83,9 +84,10 @@ export class PaymentMethodController extends GivingBaseController {
     public async verifyBank(req: express.Request<any>, res: express.Response): Promise<any> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
+            const { paymentMethodId, customerId, amountData } = req.body;
+            const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || (await this.repositories.customer.convertToModel(au.churchId, await this.repositories.customer.load(au.churchId, customerId)).personId === au.personId));
+            if (!permission) return this.json({}, 401);
             else {
-                const { paymentMethodId, customerId, amountData } = req.body;
                 try { return await StripeHelper.verifyBank(secretKey, paymentMethodId, amountData, customerId); }
                 catch (e) { return e; }
             }
@@ -96,7 +98,8 @@ export class PaymentMethodController extends GivingBaseController {
     public async delete(@requestParam("id") id: string, @requestParam("customerid") customerId: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            if (!au.checkAccess(Permissions.settings.edit) || secretKey === "") return this.json({}, 401);
+            const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || (await this.repositories.customer.convertToModel(au.churchId, await this.repositories.customer.load(au.churchId, customerId)).personId === au.personId));
+            if (!permission) return this.json({}, 401);
             else {
                 const paymentType = id.substring(0,2);
                 if (paymentType === 'pm') await StripeHelper.detachPaymentMethod(secretKey, id);

@@ -18,8 +18,7 @@ export class FundController extends GivingBaseController {
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
-            else return this.repositories.fund.convertAllToModel(au.churchId, await this.repositories.fund.loadAll(au.churchId));
+            return this.repositories.fund.convertAllToModel(au.churchId, await this.repositories.fund.loadAll(au.churchId));
         });
     }
 
