@@ -46,7 +46,8 @@ export class PaymentMethodController extends GivingBaseController {
             const secretKey = await this.loadPrivateKey(au.churchId);
             const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
             if (!permission) return this.json({}, 401);
-            else return await StripeHelper.updateCard(secretKey, paymentMethodId, cardData);
+            try { return await StripeHelper.updateCard(secretKey, paymentMethodId, cardData); }
+            catch (e) { return e; }
         });
     }
 
@@ -76,7 +77,8 @@ export class PaymentMethodController extends GivingBaseController {
             const { paymentMethodId, personId, bankData, customerId } = req.body;
             const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
             if (!permission) return this.json({}, 401);
-            else return await StripeHelper.updateBank(secretKey, paymentMethodId, bankData, customerId);
+            try { return await StripeHelper.updateBank(secretKey, paymentMethodId, bankData, customerId); }
+            catch (e) { return e; }
         });
     }
 
