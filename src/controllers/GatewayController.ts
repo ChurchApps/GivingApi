@@ -35,14 +35,19 @@ export class GatewayController extends GivingBaseController {
                             const webHookUrl = req.get('x-forwarded-proto') + '://' + req.hostname + '/donate/webhook/stripe?churchId='+au.churchId;
                             const webhook = await StripeHelper.createWebhookEndpoint(gateway.privateKey, webHookUrl);
                             gateway.webhookKey = EncryptionHelper.encrypt(webhook.secret);
+                            console.log('webHookUrl', webHookUrl);
+                            console.log('webHook', webhook);
+                            console.log('gateway1', gateway);
                         }
                         gateway.productId = await StripeHelper.createProduct(gateway.privateKey, au.churchId);
                     }
                     gateway.churchId = au.churchId;
                     gateway.privateKey = EncryptionHelper.encrypt(gateway.privateKey);
+                    console.log('Gateway2', gateway);
                     await promises.push(this.repositories.gateway.save(gateway));
                 }));
                 const result = await Promise.all(promises);
+                console.log("result", result);
                 return this.repositories.gateway.convertAllToModel(au.churchId, result);
             }
         });
