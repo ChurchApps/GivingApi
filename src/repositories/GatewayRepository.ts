@@ -21,8 +21,8 @@ export class GatewayRepository {
     }
 
     private async update(gateway: Gateway) {
-        const sql = "UPDATE gateways SET provider=?, publicKey=?, privateKey=?, productId=? WHERE id=? and churchId=?";
-        const params = [gateway.provider, gateway.publicKey, gateway.privateKey, gateway.productId, gateway.id, gateway.churchId];
+        const sql = "UPDATE gateways SET provider=?, publicKey=?, privateKey=?, webhookKey=?, productId=? WHERE id=? and churchId=?";
+        const params = [gateway.provider, gateway.publicKey, gateway.privateKey, gateway.webhookKey, gateway.productId, gateway.id, gateway.churchId];
         await DB.query(sql, params);
         return gateway;
     }
