@@ -13,7 +13,6 @@ export interface PaymentDetails {
     type?: string,
     billing_cycle_anchor?: number,
     proration_behavior?: string,
-    receipt_email?: string,
     interval?: {},
     metadata?: {}
 }
