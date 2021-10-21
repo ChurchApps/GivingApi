@@ -46,7 +46,7 @@ export class DonateController extends GivingBaseController {
             if (secretKey === "") return this.json({}, 401);
             const donationData = req.body;
             const fundDonations: FundDonation[] = donationData.funds;
-            const paymentData: PaymentDetails = { amount: donationData.amount, currency: 'usd', customer: donationData.customerId, receipt_email: donationData.person.email, metadata: { funds: JSON.stringify(fundDonations), notes: donationData.notes } };
+            const paymentData: PaymentDetails = { amount: donationData.amount, currency: 'usd', customer: donationData.customerId, metadata: { funds: JSON.stringify(fundDonations), notes: donationData.notes } };
             if (donationData.type === 'card') {
                 paymentData.payment_method = donationData.id;
                 paymentData.confirm = true;
@@ -64,7 +64,7 @@ export class DonateController extends GivingBaseController {
             if (secretKey === "") return this.json({}, 401);
 
             const { id, amount, customerId, type, billing_cycle_anchor, proration_behavior, interval, funds, person, notes } = req.body;
-            const paymentData: PaymentDetails = { payment_method_id: id, amount, currency: 'usd', customer: customerId, receipt_email: person.email, type, billing_cycle_anchor, proration_behavior, interval, metadata: { notes } };
+            const paymentData: PaymentDetails = { payment_method_id: id, amount, currency: 'usd', customer: customerId, type, billing_cycle_anchor, proration_behavior, interval, metadata: { notes } };
             const gateways = await this.repositories.gateway.loadAll(au.churchId);
             paymentData.productId = gateways[0].productId;
 
