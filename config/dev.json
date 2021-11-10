@@ -1,0 +1,8 @@
+{
+  "appEnv": "dev",
+  "appName": "GivingApi",
+  "contentRoot": "http://localhost:3402",
+  "fileStore": "disk",
+  "mailSystem": "SMTP",
+  "s3Bucket": ""
+}
