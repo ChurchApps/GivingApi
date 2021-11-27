@@ -54,7 +54,8 @@ export class DonationRepository {
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
             + " INNER JOIN funds f on f.id = fd.fundId"
-            + " WHERE d.churchId = ? AND d.personId = ?";
+            + " WHERE d.churchId = ? AND d.personId = ?"
+            + " ORDER BY d.donationDate DESC";
         return DB.query(sql, [churchId, personId]);
     }
 
