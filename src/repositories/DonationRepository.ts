@@ -38,15 +38,15 @@ export class DonationRepository {
     }
 
     public loadAll(churchId: string) {
-        return DB.query("SELECT * FROM donations WHERE churchId=?;", [churchId]);
+        return DB.query("SELECT * FROM donations WHERE churchId=? ORDER BY donationDate DESC;", [churchId]);
     }
 
     public loadByBatchId(churchId: string, batchId: string) {
-        return DB.query("SELECT d.* FROM donations d WHERE d.churchId=? AND d.batchId=?;", [churchId, batchId]);
+        return DB.query("SELECT d.* FROM donations d WHERE d.churchId=? AND d.batchId=? ORDER BY d.donationDate DESC;", [churchId, batchId]);
     }
 
     public loadByMethodDetails(churchId: string, method: string, methodDetails: string) {
-        return DB.queryOne("SELECT d.* FROM donations d WHERE d.churchId=? AND d.method=? AND d.methodDetails=?;", [churchId, method, methodDetails]);
+        return DB.queryOne("SELECT d.* FROM donations d WHERE d.churchId=? AND d.method=? AND d.methodDetails=? ORDER BY d.donationDate DESC;", [churchId, method, methodDetails]);
     }
 
     public loadByPersonId(churchId: string, personId: string) {
