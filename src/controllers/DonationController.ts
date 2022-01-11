@@ -36,7 +36,7 @@ export class DonationController extends GivingBaseController {
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            const personId = req.query?.personId.toString() || "";
+            const personId = req.query?.personId?.toString() || "";
             if (!au.checkAccess(Permissions.donations.view) && personId !== au.personId) return this.json({}, 401);
             else {
                 let result;
