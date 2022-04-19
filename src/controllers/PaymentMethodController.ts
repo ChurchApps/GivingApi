@@ -23,19 +23,23 @@ export class PaymentMethodController extends GivingBaseController {
   @httpPost("/addcard")
   public async addCard(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
-      const secretKey = await this.loadPrivateKey(au.churchId);
-      const { id, personId, customerId, email, name } = req.body;
-      const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
-      if (!permission) return this.json({}, 401);
+      const { id, personId, customerId, email, name, churchId } = req.body;
+      const cId = au?.churchId || churchId
+      const secretKey = await this.loadPrivateKey(cId);
+
+      // Require permission to edit cards, but not add so we can accept logged out donations
+      // const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
+
+      if (!secretKey) return this.json({}, 401);
       else {
         let customer = customerId;
         if (!customer) {
           customer = await StripeHelper.createCustomer(secretKey, email, name);
-          await this.repositories.customer.save({ id: customer, churchId: au.churchId, personId });
+          await this.repositories.customer.save({ id: customer, churchId: cId, personId });
         }
         try {
           const pm = await StripeHelper.attachPaymentMethod(secretKey, id, { customer });
-          return { paymentMathod: pm, customerId: customer }
+          return { paymentMethod: pm, customerId: customer }
         }
         catch (e) { return e; }
       }
