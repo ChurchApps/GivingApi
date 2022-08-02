@@ -39,6 +39,7 @@ export class GatewayController extends GivingBaseController {
         await Promise.all(req.body.map(async gateway => {
           if (gateway.provider === 'Stripe') {
             if (req.hostname !== 'localhost') {
+              await StripeHelper.deleteWebhooksByChurchId(gateway.privateKey, au.churchId);
               const webHookUrl = req.get('x-forwarded-proto') + '://' + req.hostname + '/donate/webhook/stripe?churchId=' + au.churchId;
               const webhook = await StripeHelper.createWebhookEndpoint(gateway.privateKey, webHookUrl);
               gateway.webhookKey = EncryptionHelper.encrypt(webhook.secret);
@@ -59,7 +60,11 @@ export class GatewayController extends GivingBaseController {
   public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
-      else await this.repositories.gateway.delete(au.churchId, id);
+      else {
+        const gateway = await this.repositories.gateway.load(au.churchId, id);
+        if (gateway.provider === "Stripe") await StripeHelper.deleteWebhooksByChurchId(gateway.privateKey, au.churchId);
+        await this.repositories.gateway.delete(au.churchId, id);
+      }
     });
   }
 

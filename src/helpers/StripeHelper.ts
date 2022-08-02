@@ -150,6 +150,16 @@ export class StripeHelper {
     });
   }
 
+  static async deleteWebhooksByChurchId(secretKey: string, churchId: string) {
+    if (churchId.length === 11) {
+      const stripe = StripeHelper.getStripeObj(secretKey);
+      const hooks = await stripe.webhookEndpoints.list();
+      for (const h of hooks.data) {
+        if (h.url.indexOf(churchId) > -1) await stripe.webhookEndpoints.del(h.id);
+      }
+    }
+  }
+
   static async verifySignature(secretKey: string, request: express.Request, sig: string, endpointSecret: string) {
     const stripe = StripeHelper.getStripeObj(secretKey);
     return await stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
