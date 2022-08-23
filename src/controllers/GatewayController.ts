@@ -62,7 +62,10 @@ export class GatewayController extends GivingBaseController {
       if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
       else {
         const gateway = await this.repositories.gateway.load(au.churchId, id);
-        if (gateway.provider === "Stripe") await StripeHelper.deleteWebhooksByChurchId(gateway.privateKey, au.churchId);
+        if (gateway.provider === "Stripe") {
+          const privateKey = EncryptionHelper.decrypt(gateway.privateKey);
+          await StripeHelper.deleteWebhooksByChurchId(privateKey, au.churchId);
+        }
         await this.repositories.gateway.delete(au.churchId, id);
       }
     });
