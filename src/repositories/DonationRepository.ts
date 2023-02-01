@@ -15,16 +15,17 @@ export class DonationRepository {
     private async create(donation: Donation) {
         donation.id = UniqueIdHelper.shortId();
         const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
-        const sql = "INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
-        const params = [donation.id, donation.churchId, donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes];
+        const sql = "INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes, fees) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        const params = [donation.id, donation.churchId, donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes, donation.fees];
         await DB.query(sql, params);
         return donation;
     }
 
+
     private async update(donation: Donation) {
         const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
-        const sql = "UPDATE donations SET batchId=?, personId=?, donationDate=?, amount=?, method=?, methodDetails=?, notes=? WHERE id=? and churchId=?";
-        const params = [donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes, donation.id, donation.churchId]
+        const sql = "UPDATE donations SET batchId=?, personId=?, donationDate=?, amount=?, method=?, methodDetails=?, notes=?, fees=? WHERE id=? and churchId=?";
+        const params = [donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes, donation.fees, donation.id, donation.churchId]
         await DB.query(sql, params)
         return donation;
     }
@@ -75,7 +76,7 @@ export class DonationRepository {
     }
 
     public convertToModel(churchId: string, data: any) {
-        const result: Donation = { id: data.id, batchId: data.batchId, personId: data.personId, donationDate: data.donationDate, amount: data.amount, method: data.method, methodDetails: data.methodDetails, notes: data.notes };
+        const result: Donation = { id: data.id, batchId: data.batchId, personId: data.personId, donationDate: data.donationDate, amount: data.amount, method: data.method, methodDetails: data.methodDetails, notes: data.notes, fees: data.fees };
         if (data.fundName !== undefined) result.fund = { id: data.fundId, name: data.fundName, amount: data.fundAmount };
         return result;
     }

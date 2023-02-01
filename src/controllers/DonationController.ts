@@ -3,6 +3,7 @@ import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { Donation } from "../models"
 import { Permissions } from '../helpers/Permissions'
+import { DonationHelper } from "../helpers";
 
 @controller("/donations")
 export class DonationController extends GivingBaseController {
@@ -55,7 +56,9 @@ export class DonationController extends GivingBaseController {
             if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
             else {
                 const promises: Promise<Donation>[] = [];
-                req.body.forEach(donation => { donation.churchId = au.churchId; promises.push(this.repositories.donation.save(donation)); });
+                req.body.forEach(donation => { donation.churchId = au.churchId;
+                    donation.fees=DonationHelper.getTransactionFee(donation.amount)
+                    promises.push(this.repositories.donation.save(donation)); });
                 const result = await Promise.all(promises);
                 return this.repositories.donation.convertAllToModel(au.churchId, result);
             }

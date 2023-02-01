@@ -11,4 +11,5 @@ export class Donation {
     public methodDetails?: string;
     public notes?: string;
     public fund?: Fund;
+    public fees?: number;
 }
