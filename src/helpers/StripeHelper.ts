@@ -18,10 +18,11 @@ export class StripeHelper {
 
   static createSubscription = async (secretKey: string, donationData: any) => {
     const stripe = StripeHelper.getStripeObj(secretKey);
-    const { customer, metadata, productId, interval, amount, payment_method_id, type } = donationData;
+    const { customer, metadata, productId, interval, amount, payment_method_id, type, billing_cycle_anchor } = donationData;
     const subscriptionData: any = {
       customer,
       metadata,
+      billing_cycle_anchor: billing_cycle_anchor ? billing_cycle_anchor / 1000 : "now",
       items: [{
         price_data: {
           currency: 'usd',
