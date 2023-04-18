@@ -24,6 +24,7 @@
   "keywords": [],
   "author": "Live Church Solutions",
   "dependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "^3.315.0",
     "aws-serverless-express": "^3.4.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.1",
@@ -43,7 +44,7 @@
     "stripe": "^8.195.0",
     "uuid": "^8.3.2",
     "winston": "^3.3.3",
-    "winston-cloudwatch": "^6.1.1"
+    "winston-cloudwatch": "^3.1.1"
   },
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
