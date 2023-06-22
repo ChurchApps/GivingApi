@@ -1,6 +1,7 @@
 import { controller, httpPost, interfaces } from "inversify-express-utils";
 import express from "express";
 import Stripe from "stripe";
+import axios from "axios";
 import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
 import { EncryptionHelper } from "../apiBase/helpers";
@@ -99,6 +100,26 @@ export class DonateController extends GivingBaseController {
   private loadPrivateKey = async (churchId: string) => {
     const gateways = await this.repositories.gateway.loadAll(churchId);
     return (gateways.length === 0) ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
+  }
+
+  @httpPost("/captcha-verify")
+  public async captchaVerify(req: express.Request<{}, {}, { token: string }>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    return this.actionWrapperAnon(req, res, async () => {
+      const { token } = req.body;
+      const message: { response: string} = { response: "" };
+      try {
+        const response = await axios.post(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SECRET_KEY}&response=${token}`);
+        if (response.data.success) {
+          message.response = "human";
+        } else {
+          message.response = "robot";
+        }
+      } catch (error) {
+        return this.json("Error verifying reCAPTCHA", 401);
+      }
+
+      return message;
+    })
   }
 
 }
