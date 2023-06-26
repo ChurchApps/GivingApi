@@ -5,3 +5,5 @@ CONNECTION_STRING=mysql://
 ENCRYPTION_KEY=aSecretKeyOfExactly192BitsLength
 JWT_SECRET=this is a test key that is a sentence
 SERVER_PORT=8084
+
+GOOGLE_RECAPTCHA_SECRET_KEY=
