@@ -105,7 +105,8 @@ export class DonateController extends GivingBaseController {
   public async captchaVerify(req: express.Request<{}, {}, { token: string }>, res: express.Response): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapperAnon(req, res, async () => {
       const { token } = req.body;
-      const message: { response: string} = { response: "" };
+      const message: { response: string } = { response: "" };
+      const checkDomain: { name: string } = { name: "localhost" };
       try {
         const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.GOOGLE_RECAPTCHA_SECRET_KEY}&response=${token}`, {
           method: "POST",
@@ -115,8 +116,20 @@ export class DonateController extends GivingBaseController {
         });
         const data = await response.json();
 
+        if (data?.hostname?.includes(".b1.church")) {
+          checkDomain.name = ".b1.church";
+        } else {
+          const getDomainData = await fetch(`${process.env.MEMBERSHIP_API}/domains/public/lookup/${data.hostname}`);
+          const domainData = await getDomainData.json();
+          if (domainData.length > 0) {
+            checkDomain.name = data.hostname;
+          }
+        }
+
         if (data.success) {
-          message.response = "human";
+          if (data.hostname.includes(checkDomain.name)) {
+            message.response = "human";
+          }
         } else {
           message.response = "robot";
         }
