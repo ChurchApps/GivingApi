@@ -5,6 +5,7 @@ import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
 import { EncryptionHelper } from "../apiBase/helpers";
 import { Donation, FundDonation, DonationBatch, PaymentDetails, EventLog, Subscription, SubscriptionFund } from "../models";
+import { Environment } from "../helpers/Environment";
 
 @controller("/donate")
 export class DonateController extends GivingBaseController {
@@ -107,7 +108,7 @@ export class DonateController extends GivingBaseController {
       try {
         // detecting if its a bot or a human
         const { token } = req.body;
-        const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.GOOGLE_RECAPTCHA_SECRET_KEY}&response=${token}`, {
+        const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${Environment.googleRecaptchaSecretKey}&response=${token}`, {
           method: "POST",
           headers: {
             "Accept": "application/json",

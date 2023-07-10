@@ -4,6 +4,7 @@ import path from "path";
 import { EnvironmentBase } from "../apiBase";
 
 export class Environment extends EnvironmentBase {
+  static googleRecaptchaSecretKey: string;
 
   static init(environment: string) {
     let file = "dev.json";
@@ -17,6 +18,7 @@ export class Environment extends EnvironmentBase {
     const json = fs.readFileSync(physicalPath, "utf8");
     const data = JSON.parse(json);
     this.populateBase(data);
+    Environment.googleRecaptchaSecretKey = process.env.GOOGLE_RECAPTCHA_SECRET_KEY;
   }
 
 }
