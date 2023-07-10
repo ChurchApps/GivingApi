@@ -101,4 +101,48 @@ export class DonateController extends GivingBaseController {
     return (gateways.length === 0) ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
   }
 
+  @httpPost("/captcha-verify")
+  public async captchaVerify(req: express.Request<{}, {}, { token: string }>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    return this.actionWrapperAnon(req, res, async () => {
+      try {
+        // detecting if its a bot or a human
+        const { token } = req.body;
+        const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.GOOGLE_RECAPTCHA_SECRET_KEY}&response=${token}`, {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+          }
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+          return { response: "robot" };
+        }
+
+        // if google's response already includes b1.church in hostname property, no need to check in the DB then
+        if (data.hostname.includes("b1.church")) {
+          return { response: "human" }
+        }
+
+        // if its a custom domain, verify the domain exist in the DB
+        const domainData = await fetch(`${process.env.MEMBERSHIP_API}/domains/public/lookup/${data.hostname.replace(".localhost", "")}`)
+        const domain = await domainData.json();
+
+        if (domain.length > 0) {
+          return { response: "human" }
+        }
+
+        // if calls is made from localhost
+        if (data.hostname.includes(".localhost")) {
+          return { response: "human" }
+        }
+
+        return { response: "" }
+      } catch (error) {
+        console.error(error)
+        return this.json({ message: "Error verifying reCAPTCHA" }, 400);
+      }
+    })
+  }
+
 }
