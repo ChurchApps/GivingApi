@@ -104,10 +104,9 @@ export class DonateController extends GivingBaseController {
   @httpPost("/captcha-verify")
   public async captchaVerify(req: express.Request<{}, {}, { token: string }>, res: express.Response): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapperAnon(req, res, async () => {
-      const { token } = req.body;
-      const message: { response: string } = { response: "" };
-      const checkDomain: { name: string } = { name: "localhost" };
       try {
+        // detecting if its a bot or a human
+        const { token } = req.body;
         const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.GOOGLE_RECAPTCHA_SECRET_KEY}&response=${token}`, {
           method: "POST",
           headers: {
@@ -116,27 +115,31 @@ export class DonateController extends GivingBaseController {
         });
         const data = await response.json();
 
-        if (data?.hostname?.includes(".b1.church")) {
-          checkDomain.name = ".b1.church";
-        } else {
-          const getDomainData = await fetch(`${process.env.MEMBERSHIP_API}/domains/public/lookup/${data.hostname}`);
-          const domainData = await getDomainData.json();
-          if (domainData.length > 0) {
-            checkDomain.name = data.hostname;
-          }
+        if (!data.success) {
+          return { response: "robot" };
         }
 
-        if (data.success) {
-          if (data.hostname.includes(checkDomain.name)) {
-            message.response = "human";
-          }
-        } else {
-          message.response = "robot";
+        // if google's response already includes b1.church in hostname property, no need to check in the DB then
+        if (data.hostname.includes("b1.church")) {
+          return { response: "human" }
         }
 
-        return message;
+        // if its a custom domain, verify the domain exist in the DB
+        const domainData = await fetch(`${process.env.MEMBERSHIP_API}/domains/public/lookup/${data.hostname.replace(".localhost", "")}`)
+        const domain = await domainData.json();
 
+        if (domain.length > 0) {
+          return { response: "human" }
+        }
+
+        // if calls is made from localhost
+        if (data.hostname.includes(".localhost")) {
+          return { response: "human" }
+        }
+
+        return { response: "" }
       } catch (error) {
+        console.error(error)
         return this.json({ message: "Error verifying reCAPTCHA" }, 400);
       }
     })
