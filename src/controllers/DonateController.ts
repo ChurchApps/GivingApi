@@ -6,6 +6,7 @@ import { StripeHelper } from "../helpers/StripeHelper";
 import { EncryptionHelper } from "../apiBase/helpers";
 import { Donation, FundDonation, DonationBatch, PaymentDetails, EventLog, Subscription, SubscriptionFund } from "../models";
 import { Environment } from "../helpers/Environment";
+import Axios from "axios"
 
 @controller("/donate")
 export class DonateController extends GivingBaseController {
@@ -108,13 +109,8 @@ export class DonateController extends GivingBaseController {
       try {
         // detecting if its a bot or a human
         const { token } = req.body;
-        const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${Environment.googleRecaptchaSecretKey}&response=${token}`, {
-          method: "POST",
-          headers: {
-            "Accept": "application/json",
-          }
-        });
-        const data = await response.json();
+        const response = await Axios.post(`https://www.google.com/recaptcha/api/siteverify?secret=${Environment.googleRecaptchaSecretKey}&response=${token}`);
+        const data = response.data;
 
         if (!data.success) {
           return { response: "robot" };
@@ -126,8 +122,8 @@ export class DonateController extends GivingBaseController {
         }
 
         // if its a custom domain, verify the domain exist in the DB
-        const domainData = await fetch(`${process.env.MEMBERSHIP_API}/domains/public/lookup/${data.hostname.replace(".localhost", "")}`)
-        const domain = await domainData.json();
+        const domainData = await Axios.get(`${process.env.MEMBERSHIP_API}/domains/public/lookup/${data.hostname.replace(".localhost", "")}`)
+        const domain:any = await domainData.data;
 
         if (domain.length > 0) {
           return { response: "human" }
