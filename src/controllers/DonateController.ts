@@ -122,7 +122,7 @@ export class DonateController extends GivingBaseController {
         }
 
         // if its a custom domain, verify the domain exist in the DB
-        const domainData = await Axios.get(`${process.env.MEMBERSHIP_API}/domains/public/lookup/${data.hostname.replace(".localhost", "")}`)
+        const domainData = await Axios.get(`${Environment.membershipApi}/domains/public/lookup/${data.hostname.replace(".localhost", "")}`)
         const domain:any = await domainData.data;
 
         if (domain.length > 0) {

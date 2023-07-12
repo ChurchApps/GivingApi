@@ -6,6 +6,4 @@ ENCRYPTION_KEY=aSecretKeyOfExactly192BitsLength
 JWT_SECRET=this is a test key that is a sentence
 SERVER_PORT=8084
 
-MEMBERSHIP_API=https://membershipapi.staging.churchapps.org
-
 GOOGLE_RECAPTCHA_SECRET_KEY=

@@ -4,5 +4,6 @@
   "contentRoot": "http://localhost:3402",
   "fileStore": "disk",
   "mailSystem": "",
-  "s3Bucket": ""
+  "s3Bucket": "",
+  "membershipApi": "https://membershipapi.staging.churchapps.org"
 }

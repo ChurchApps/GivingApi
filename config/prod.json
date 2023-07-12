@@ -4,5 +4,6 @@
   "contentRoot": "https://content.churchapps.org",
   "fileStore": "S3",
   "mailSystem": "SES",
-  "s3Bucket": "churchapps-content"
+  "s3Bucket": "churchapps-content",
+  "membershipApi": "https://membershipapi.churchapps.org"
 }
