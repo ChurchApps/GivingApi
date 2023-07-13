@@ -125,7 +125,7 @@ export class DonateController extends GivingBaseController {
         const domainData = await Axios.get(`${Environment.membershipApi}/domains/public/lookup/${data.hostname.replace(".localhost", "")}`)
         const domain:any = await domainData.data;
 
-        if (domain.length > 0) {
+        if (domain) {
           return { response: "human" }
         }
 
