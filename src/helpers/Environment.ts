@@ -6,6 +6,7 @@ import { EnvironmentBase } from "../apiBase";
 export class Environment extends EnvironmentBase {
   static googleRecaptchaSecretKey: string;
   static membershipApi: string;
+  static supportEmail: string;
 
   static init(environment: string) {
     let file = "dev.json";
@@ -20,6 +21,7 @@ export class Environment extends EnvironmentBase {
     const data = JSON.parse(json);
     this.populateBase(data);
     this.membershipApi = data.membershipApi;
+    this.supportEmail = data.supportEmail;
 
     Environment.googleRecaptchaSecretKey = process.env.GOOGLE_RECAPTCHA_SECRET_KEY;
   }

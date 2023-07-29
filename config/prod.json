@@ -5,5 +5,6 @@
   "fileStore": "S3",
   "mailSystem": "SES",
   "s3Bucket": "churchapps-content",
-  "membershipApi": "https://membershipapi.churchapps.org"
+  "membershipApi": "https://membershipapi.churchapps.org",
+  "supportEmail": "support@churchapps.org"
 }
