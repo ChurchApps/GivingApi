@@ -3,7 +3,7 @@ import express from "express";
 import Stripe from "stripe";
 import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
-import { EncryptionHelper } from "../apiBase/helpers";
+import { EncryptionHelper, EmailHelper } from "../apiBase/helpers";
 import { Donation, FundDonation, DonationBatch, PaymentDetails, EventLog, Subscription, SubscriptionFund } from "../models";
 import { Environment } from "../helpers/Environment";
 import Axios from "axios"
@@ -82,8 +82,31 @@ export class DonateController extends GivingBaseController {
         promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
       });
       await Promise.all(promises);
+      await this.sendEmails(person.email, req.body?.churchName, funds, interval);
       return stripeSubscription;
     });
+  }
+
+  private sendEmails = async (to: string, churchName: string, funds: any[], interval: { interval_count: number, interval: string }) => {
+    const contentRows: any[] = [];
+    funds.forEach((fund, index) => {
+      contentRows.push(
+        `<tr>${index === 0 ? `<td style="font-size: 15px" rowspan="${funds.length}">${interval.interval_count} ${interval.interval}</td>`: ``}<td style="font-size: 15px">${fund?.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
+      )
+    })
+    const contents = `
+      <h3 style="font-size: 20px;">Your donation has been confirmed!</h3>
+      <table role="presentation" style="text-align: left;" cellspacing="8" width="80%">
+        <tablebody>
+          <tr>
+            <th style="font-size: 16px" width="30%">Interval</th>
+            <th style="font-size: 16px" width="30%">Fund</th>
+            <th style="font-size: 16px" width="30%">Amount</th>
+          </tr>`
+          + contentRows.join(" ") +
+        `</tablebody>
+      </table>`
+    await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, churchName, "", "Thank You For Donating", contents);
   }
 
   private logDonation = async (donationData: Donation, fundData: FundDonation[]) => {
