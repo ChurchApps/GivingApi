@@ -82,12 +82,12 @@ export class DonateController extends GivingBaseController {
         promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
       });
       await Promise.all(promises);
-      await this.sendEmails(person.email, req.body?.churchName, funds, interval);
+      await this.sendEmails(person.email, req.body?.churchName, req.body?.churchURL, funds, interval);
       return stripeSubscription;
     });
   }
 
-  private sendEmails = async (to: string, churchName: string, funds: any[], interval: { interval_count: number, interval: string }) => {
+  private sendEmails = async (to: string, churchName: string, churchURL: string, funds: any[], interval: { interval_count: number, interval: string }) => {
     const contentRows: any[] = [];
     funds.forEach((fund, index) => {
       contentRows.push(
@@ -106,7 +106,7 @@ export class DonateController extends GivingBaseController {
           + contentRows.join(" ") +
         `</tablebody>
       </table>`
-    await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, churchName, "", "Thank You For Donating", contents);
+    await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, churchName, churchURL, "Thank You For Donating", contents, true);
   }
 
   private logDonation = async (donationData: Donation, fundData: FundDonation[]) => {
