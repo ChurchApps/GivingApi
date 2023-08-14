@@ -6,4 +6,5 @@ export class Gateway {
     public privateKey?: string;
     public webhookKey?: string;
     public productId?: string;
+    public payFees?: boolean;
 }

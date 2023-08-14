@@ -1,4 +1,4 @@
-import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } from "inversify-express-utils";
+import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete, httpPatch } from "inversify-express-utils";
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { Gateway } from "../models"
@@ -54,6 +54,33 @@ export class GatewayController extends GivingBaseController {
         return this.repositories.gateway.convertAllToModel(au.churchId, result);
       }
     });
+  }
+
+  @httpPatch("/:id")
+  public async update(@requestParam("id") id: string, req: express.Request<{}, {}, { payFees: boolean }>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    return this.actionWrapper(req, res, async (au) => {
+      if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
+      else {
+        const { payFees } = req.body;
+        const existing = await this.repositories.gateway.load(au.churchId, id);
+        if (!existing) {
+          return this.json({ message: 'No gateway found for this church' }, 400);
+        } else {
+          const updatedGateway: Gateway = {
+            id: existing.id,
+            churchId: existing.churchId,
+            provider: existing.provider,
+            publicKey: existing.publicKey,
+            privateKey: existing.privateKey,
+            webhookKey: existing.webhookKey,
+            productId: existing.productId,
+            payFees: payFees
+          }
+          await this.repositories.gateway.save(updatedGateway);
+        }
+        return existing;
+      }
+    })
   }
 
   @httpDelete("/:id")

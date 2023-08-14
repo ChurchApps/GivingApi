@@ -14,15 +14,15 @@ export class GatewayRepository {
     private async create(gateway: Gateway) {
         gateway.id = UniqueIdHelper.shortId();
         await DB.query("DELETE FROM gateways WHERE churchId=? AND id<>?;", [gateway.churchId, gateway.id]);  // enforce a single record per church (for now)
-        const sql = "INSERT INTO gateways (id, churchId, provider, publicKey, privateKey, webhookKey, productId) VALUES (?, ?, ?, ?, ?, ?, ?);";
-        const params = [gateway.id, gateway.churchId, gateway.provider, gateway.publicKey, gateway.privateKey, gateway.webhookKey, gateway.productId];
+        const sql = "INSERT INTO gateways (id, churchId, provider, publicKey, privateKey, webhookKey, productId, payFees) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+        const params = [gateway.id, gateway.churchId, gateway.provider, gateway.publicKey, gateway.privateKey, gateway.webhookKey, gateway.productId, gateway.payFees];
         await DB.query(sql, params);
         return gateway;
     }
 
     private async update(gateway: Gateway) {
-        const sql = "UPDATE gateways SET provider=?, publicKey=?, privateKey=?, webhookKey=?, productId=? WHERE id=? and churchId=?";
-        const params = [gateway.provider, gateway.publicKey, gateway.privateKey, gateway.webhookKey, gateway.productId, gateway.id, gateway.churchId];
+        const sql = "UPDATE gateways SET provider=?, publicKey=?, privateKey=?, webhookKey=?, productId=?, payFees=? WHERE id=? and churchId=?";
+        const params = [gateway.provider, gateway.publicKey, gateway.privateKey, gateway.webhookKey, gateway.productId, gateway.payFees, gateway.id, gateway.churchId];
         await DB.query(sql, params);
         return gateway;
     }
@@ -40,7 +40,7 @@ export class GatewayRepository {
     }
 
     public convertToModel(churchId: string, data: any) {
-        const result: Gateway = { id: data.id, provider: data.provider, publicKey: data.publicKey, webhookKey: data.webhookKey, productId: data.productId };
+        const result: Gateway = { id: data.id, provider: data.provider, publicKey: data.publicKey, webhookKey: data.webhookKey, productId: data.productId, payFees: data.payFees };
         return result;
     }
 
