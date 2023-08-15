@@ -106,7 +106,7 @@ export class DonateController extends GivingBaseController {
           + contentRows.join(" ") +
         `</tablebody>
       </table>`
-    await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, churchName, churchURL, "Thank You For Donating", contents, true);
+    await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, churchName, churchURL, "Thank You For Donating", contents, "ChurchEmailTemplate.html");
   }
 
   private logDonation = async (donationData: Donation, fundData: FundDonation[]) => {
