@@ -8,5 +8,6 @@ CREATE TABLE `gateways` (
   `privateKey` varchar(255) DEFAULT NULL,
   `webhookKey` varchar(255) DEFAULT NULL,
   `productId` varchar(255) DEFAULT NULL,
+  `payFees` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
