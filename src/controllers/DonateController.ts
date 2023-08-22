@@ -57,7 +57,9 @@ export class DonateController extends GivingBaseController {
         paymentData.off_session = true;
       }
       if (donationData.type === 'bank') paymentData.source = donationData.id;
-      return await StripeHelper.donate(secretKey, paymentData);
+      const stripeDonation = await StripeHelper.donate(secretKey, paymentData);
+      await this.sendEmails(donationData.person.email, donationData?.churchName, donationData?.churchURL, donationData.funds, donationData?.interval, "one-time");
+      return stripeDonation;
     });
   }
 
@@ -82,30 +84,45 @@ export class DonateController extends GivingBaseController {
         promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
       });
       await Promise.all(promises);
-      await this.sendEmails(person.email, req.body?.churchName, req.body?.churchURL, funds, interval);
+      await this.sendEmails(person.email, req.body?.churchName, req.body?.churchURL, funds, interval, "recurring");
       return stripeSubscription;
     });
   }
 
-  private sendEmails = async (to: string, churchName: string, churchURL: string, funds: any[], interval: { interval_count: number, interval: string }) => {
+  private sendEmails = async (to: string, churchName: string, churchURL: string, funds: any[], interval?: { interval_count: number, interval: string }, donationType: "recurring" | "one-time" = "recurring") => {
     const contentRows: any[] = [];
+
     funds.forEach((fund, index) => {
-      contentRows.push(
-        `<tr>${index === 0 ? `<td style="font-size: 15px" rowspan="${funds.length}">${interval.interval_count} ${interval.interval}</td>`: ``}<td style="font-size: 15px">${fund?.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
-      )
-    })
+      if (donationType === "recurring") {
+        contentRows.push(
+          `<tr>${index === 0 ? `<td style="font-size: 15px" rowspan="${funds.length}">${interval.interval_count} ${interval.interval}</td>`: ``}<td style="font-size: 15px">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
+        )
+      } else {
+        contentRows.push(
+          `<tr><td style="font-size: 15px; text-overflow: ellipsis; overflow: hidden; padding-right: 20px;">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
+        )
+      }
+    });
+
     const contents = `
       <h3 style="font-size: 20px;">Your donation has been confirmed!</h3>
       <table role="presentation" style="text-align: left;" cellspacing="8" width="80%">
         <tablebody>
-          <tr>
-            <th style="font-size: 16px" width="30%">Interval</th>
-            <th style="font-size: 16px" width="30%">Fund</th>
-            <th style="font-size: 16px" width="30%">Amount</th>
-          </tr>`
+          ${donationType === "recurring" ?
+            `<tr>
+              <th style="font-size: 16px" width="30%">Interval</th>
+              <th style="font-size: 16px" width="30%">Fund</th>
+              <th style="font-size: 16px" width="30%">Amount</th>
+            </tr>` :
+            `<tr>
+              <th style="font-size: 16px" width="50%">Fund</th>
+              <th style="font-size: 16px" width="50%">Amount</th>
+            </tr>`
+          }`
           + contentRows.join(" ") +
         `</tablebody>
-      </table>`
+      </table>
+    `;
     await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, churchName, churchURL, "Thank You For Donating", contents, "ChurchEmailTemplate.html");
   }
 
