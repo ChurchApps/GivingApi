@@ -64,21 +64,22 @@ export class DonateController extends GivingBaseController {
   @httpPost("/subscribe")
   public async subscribe(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
-      const secretKey = await this.loadPrivateKey(au.churchId);
+      const { id, amount, customerId, type, billing_cycle_anchor, proration_behavior, interval, funds, person, notes, churchId: CHURCH_ID } = req.body;
+      const churchId = au.churchId || CHURCH_ID;
+      const secretKey = await this.loadPrivateKey(churchId);
       if (secretKey === "") return this.json({}, 401);
 
-      const { id, amount, customerId, type, billing_cycle_anchor, proration_behavior, interval, funds, person, notes } = req.body;
       const paymentData: PaymentDetails = { payment_method_id: id, amount, currency: 'usd', customer: customerId, type, billing_cycle_anchor, proration_behavior, interval, metadata: { notes } };
-      const gateways = await this.repositories.gateway.loadAll(au.churchId);
+      const gateways = await this.repositories.gateway.loadAll(churchId);
       paymentData.productId = gateways[0].productId;
 
       const stripeSubscription = await StripeHelper.createSubscription(secretKey, paymentData);
-      const subscription: Subscription = { id: stripeSubscription.id, churchId: au.churchId, personId: person.id, customerId };
+      const subscription: Subscription = { id: stripeSubscription.id, churchId, personId: person.id, customerId };
       await this.repositories.subscription.save(subscription);
 
       const promises: Promise<SubscriptionFund>[] = [];
       funds.forEach((fund: FundDonation) => {
-        const subscriptionFund: SubscriptionFund = { churchId: au.churchId, subscriptionId: subscription.id, fundId: fund.id, amount: fund.amount };
+        const subscriptionFund: SubscriptionFund = { churchId, subscriptionId: subscription.id, fundId: fund.id, amount: fund.amount };
         promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
       });
       await Promise.all(promises);
