@@ -58,7 +58,7 @@ export class DonateController extends GivingBaseController {
       }
       if (donationData.type === 'bank') paymentData.source = donationData.id;
       const stripeDonation = await StripeHelper.donate(secretKey, paymentData);
-      await this.sendEmails(donationData.person.email, donationData?.churchName, donationData?.churchURL, donationData.funds, donationData?.interval, "one-time");
+      await this.sendEmails(donationData.person.email, donationData?.church, donationData?.churchURL, donationData.funds, donationData?.interval, "one-time");
       return stripeDonation;
     });
   }
@@ -85,12 +85,12 @@ export class DonateController extends GivingBaseController {
         promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
       });
       await Promise.all(promises);
-      await this.sendEmails(person.email, req.body?.churchName, req.body?.churchURL, funds, interval, "recurring");
+      await this.sendEmails(person.email, req.body?.church, req.body?.churchURL, funds, interval, "recurring");
       return stripeSubscription;
     });
   }
 
-  private sendEmails = async (to: string, churchName: string, churchURL: string, funds: any[], interval?: { interval_count: number, interval: string }, donationType: "recurring" | "one-time" = "recurring") => {
+  private sendEmails = async (to: string, church: any, churchURL: string, funds: any[], interval?: { interval_count: number, interval: string }, donationType: "recurring" | "one-time" = "recurring") => {
     const contentRows: any[] = [];
 
     funds.forEach((fund, index) => {
@@ -123,8 +123,14 @@ export class DonateController extends GivingBaseController {
           + contentRows.join(" ") +
         `</tablebody>
       </table>
+      ${donationType === "recurring" && `
+        <br />
+        <h4 style="font-size: 14px;">
+          <a href="https://${church.subDomain}.b1.church/member/donate" target="_blank" rel="noreferrer noopener">Modify your subscription here!</a>
+        </h4>
+      `}
     `;
-    await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, churchName, churchURL, "Thank You For Donating", contents, "ChurchEmailTemplate.html");
+    await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, church.name, churchURL, "Thank You For Donating", contents, "ChurchEmailTemplate.html");
   }
 
   private logDonation = async (donationData: Donation, fundData: FundDonation[]) => {
