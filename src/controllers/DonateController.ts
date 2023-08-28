@@ -105,6 +105,8 @@ export class DonateController extends GivingBaseController {
       }
     });
 
+    const domain = Environment.appEnv === "staging" ? `${church.subDomain}.staging.b1.church` : `${church.subDomain}.b1.church`;
+
     const contents = `
       <h3 style="font-size: 20px;">Your donation has been confirmed!</h3>
       <table role="presentation" style="text-align: left;" cellspacing="8" width="80%">
@@ -126,7 +128,7 @@ export class DonateController extends GivingBaseController {
       ${donationType === "recurring" && `
         <br />
         <h4 style="font-size: 14px;">
-          <a href="https://${church.subDomain}.b1.church/member/donate" target="_blank" rel="noreferrer noopener">Modify your subscription here!</a>
+          <a href="https://${domain}/member/donate" target="_blank" rel="noreferrer noopener">Modify your subscription here!</a>
         </h4>
       `}
     `;
