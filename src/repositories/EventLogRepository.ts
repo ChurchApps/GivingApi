@@ -1,6 +1,5 @@
 import { injectable } from "inversify";
-import { UniqueIdHelper } from "../apiBase";
-import { DB } from "../apiBase/db";
+import { DB, UniqueIdHelper } from "@churchapps/apihelper";
 import { EventLog } from "../models";
 
 @injectable()

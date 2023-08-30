@@ -3,7 +3,7 @@ import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { Permissions } from '../helpers/Permissions'
 import { StripeHelper } from "../helpers";
-import { EncryptionHelper } from "../apiBase";
+import { EncryptionHelper } from "@churchapps/apihelper";
 
 @controller("/customers")
 export class CustomerController extends GivingBaseController {

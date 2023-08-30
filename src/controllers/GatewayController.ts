@@ -2,7 +2,8 @@ import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete, ht
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { Gateway } from "../models"
-import { EncryptionHelper, StripeHelper } from "../helpers"
+import { StripeHelper } from "../helpers"
+import { EncryptionHelper } from "@churchapps/apihelper";
 import { Permissions } from "../helpers/Permissions"
 
 @controller("/gateways")

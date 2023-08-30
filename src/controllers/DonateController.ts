@@ -3,7 +3,7 @@ import express from "express";
 import Stripe from "stripe";
 import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
-import { EncryptionHelper, EmailHelper } from "../apiBase/helpers";
+import { EncryptionHelper, EmailHelper } from "@churchapps/apihelper";
 import { Donation, FundDonation, DonationBatch, PaymentDetails, EventLog, Subscription, SubscriptionFund } from "../models";
 import { Environment } from "../helpers/Environment";
 import Axios from "axios"
