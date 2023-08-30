@@ -7,6 +7,7 @@ import { EncryptionHelper, EmailHelper } from "../apiBase/helpers";
 import { Donation, FundDonation, DonationBatch, PaymentDetails, EventLog, Subscription, SubscriptionFund } from "../models";
 import { Environment } from "../helpers/Environment";
 import Axios from "axios"
+import dayjs from "dayjs";
 
 @controller("/donate")
 export class DonateController extends GivingBaseController {
@@ -58,7 +59,7 @@ export class DonateController extends GivingBaseController {
       }
       if (donationData.type === 'bank') paymentData.source = donationData.id;
       const stripeDonation = await StripeHelper.donate(secretKey, paymentData);
-      await this.sendEmails(donationData.person.email, donationData?.church, donationData?.churchURL, donationData.funds, donationData?.interval, "one-time");
+      await this.sendEmails(donationData.person.email, donationData?.church, donationData?.churchURL, donationData.funds, donationData?.interval, req.body?.billing_cycle_anchor, "one-time");
       return stripeDonation;
     });
   }
@@ -85,18 +86,19 @@ export class DonateController extends GivingBaseController {
         promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
       });
       await Promise.all(promises);
-      await this.sendEmails(person.email, req.body?.church, req.body?.churchURL, funds, interval, "recurring");
+      await this.sendEmails(person.email, req.body?.church, req.body?.churchURL, funds, interval, req.body?.billing_cycle_anchor, "recurring");
       return stripeSubscription;
     });
   }
 
-  private sendEmails = async (to: string, church: any, churchURL: string, funds: any[], interval?: { interval_count: number, interval: string }, donationType: "recurring" | "one-time" = "recurring") => {
+  private sendEmails = async (to: string, church: any, churchURL: string, funds: any[], interval?: { interval_count: number, interval: string }, billingCycleAnchor?: number, donationType: "recurring" | "one-time" = "recurring") => {
     const contentRows: any[] = [];
 
     funds.forEach((fund, index) => {
       if (donationType === "recurring") {
+        const startDate = dayjs(billingCycleAnchor).format("MMM D, YYYY");
         contentRows.push(
-          `<tr>${index === 0 ? `<td style="font-size: 15px" rowspan="${funds.length}">${interval.interval_count} ${interval.interval}</td>`: ``}<td style="font-size: 15px">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
+          `<tr>${index === 0 ? `<td style="font-size: 15px" rowspan="${funds.length}">${interval.interval_count} ${interval.interval}<BR><span style="font-size: 13px">(from ${startDate})</span></td>`: ``}<td style="font-size: 15px">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
         )
       } else {
         contentRows.push(
@@ -108,7 +110,7 @@ export class DonateController extends GivingBaseController {
     const domain = Environment.appEnv === "staging" ? `${church.subDomain}.staging.b1.church` : `${church.subDomain}.b1.church`;
 
     const contents = `
-      <h3 style="font-size: 20px;">Your donation has been confirmed!</h3>
+      <h3 style="font-size: 20px;">Your ${donationType === "recurring" ? 'recurring' : ''} donation has been confirmed!</h3>
       <table role="presentation" style="text-align: left;" cellspacing="8" width="80%">
         <tablebody>
           ${donationType === "recurring" ?
