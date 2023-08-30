@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
-import { DB } from "../apiBase/db";
+import { DB } from "@churchapps/apihelper";
 import { FundDonation } from "../models";
-import { UniqueIdHelper, DateTimeHelper } from "../helpers";
+import { UniqueIdHelper, DateHelper } from "@churchapps/apihelper";
 
 @injectable()
 export class FundDonationRepository {
@@ -46,7 +46,7 @@ export class FundDonationRepository {
     }
 
     public loadByFundIdDate(churchId: string, fundId: string, startDate: Date, endDate: Date) {
-        return DB.query("SELECT fd.*, d.donationDate, d.batchId, d.personId FROM fundDonations fd INNER JOIN donations d ON d.id=fd.donationId WHERE fd.churchId=? AND fd.fundId=? AND d.donationDate BETWEEN ? AND ? ORDER by d.donationDate desc;", [churchId, fundId, DateTimeHelper.toMysqlDate(startDate), DateTimeHelper.toMysqlDate(endDate)]);
+        return DB.query("SELECT fd.*, d.donationDate, d.batchId, d.personId FROM fundDonations fd INNER JOIN donations d ON d.id=fd.donationId WHERE fd.churchId=? AND fd.fundId=? AND d.donationDate BETWEEN ? AND ? ORDER by d.donationDate desc;", [churchId, fundId, DateHelper.toMysqlDate(startDate), DateHelper.toMysqlDate(endDate)]);
     }
 
     public convertToModel(churchId: string, data: any) {

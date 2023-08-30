@@ -1,8 +1,7 @@
 import { injectable } from "inversify";
-import { DB } from "../apiBase/db";
+import { DB } from "@churchapps/apihelper";
 import { Donation, DonationSummary } from "../models";
-import { ArrayHelper, DateTimeHelper } from "../helpers"
-import { UniqueIdHelper } from "../helpers";
+import { UniqueIdHelper, DateHelper, ArrayHelper } from "@churchapps/apihelper";
 
 @injectable()
 export class DonationRepository {
@@ -14,7 +13,7 @@ export class DonationRepository {
 
     private async create(donation: Donation) {
         donation.id = UniqueIdHelper.shortId();
-        const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
+        const donationDate = DateHelper.toMysqlDate(donation.donationDate)
         const sql = "INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
         const params = [donation.id, donation.churchId, donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes];
         await DB.query(sql, params);
@@ -22,7 +21,7 @@ export class DonationRepository {
     }
 
     private async update(donation: Donation) {
-        const donationDate = DateTimeHelper.toMysqlDate(donation.donationDate)
+        const donationDate = DateHelper.toMysqlDate(donation.donationDate)
         const sql = "UPDATE donations SET batchId=?, personId=?, donationDate=?, amount=?, method=?, methodDetails=?, notes=? WHERE id=? and churchId=?";
         const params = [donation.batchId, donation.personId, donationDate, donation.amount, donation.method, donation.methodDetails, donation.notes, donation.id, donation.churchId]
         await DB.query(sql, params)
@@ -60,8 +59,8 @@ export class DonationRepository {
     }
 
     public loadSummary(churchId: string, startDate: Date, endDate: Date) {
-        const sDate = DateTimeHelper.toMysqlDate(startDate);
-        const eDate = DateTimeHelper.toMysqlDate(endDate);
+        const sDate = DateHelper.toMysqlDate(startDate);
+        const eDate = DateHelper.toMysqlDate(endDate);
         // const sql = "SELECT week(d.donationDate, 0) as week, SUM(fd.amount) as totalAmount, f.name as fundName"
         const sql = "SELECT STR_TO_DATE(concat(year(d.donationDate), ' ', week(d.donationDate, 0), ' Sunday'), '%X %V %W') AS week, SUM(fd.amount) as totalAmount, f.name as fundName"
             + " FROM donations d"

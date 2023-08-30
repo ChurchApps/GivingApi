@@ -1,7 +1,8 @@
 import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } from "inversify-express-utils";
 import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
-import { EncryptionHelper, StripeHelper } from "../helpers"
+import { StripeHelper } from "../helpers"
+import { EncryptionHelper } from "@churchapps/apihelper";
 import { Permissions } from "../helpers/Permissions"
 
 @controller("/paymentmethods")

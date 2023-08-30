@@ -1,8 +1,6 @@
 import { injectable } from "inversify";
-import { DB } from "../apiBase/db";
+import { DB, UniqueIdHelper } from "@churchapps/apihelper";
 import { Fund } from "../models";
-import { UniqueIdHelper } from "../helpers";
-
 
 @injectable()
 export class FundRepository {
