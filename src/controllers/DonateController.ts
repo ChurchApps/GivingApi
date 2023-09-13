@@ -59,7 +59,7 @@ export class DonateController extends GivingBaseController {
       }
       if (donationData.type === 'bank') paymentData.source = donationData.id;
       const stripeDonation = await StripeHelper.donate(secretKey, paymentData);
-      await this.sendEmails(donationData.person.email, donationData?.church, donationData?.churchURL, donationData.funds, donationData?.interval, req.body?.billing_cycle_anchor, "one-time");
+      await this.sendEmails(donationData.person.email, donationData?.church, donationData.funds, donationData?.interval, donationData?.billing_cycle_anchor, "one-time");
       return stripeDonation;
     });
   }
@@ -86,55 +86,64 @@ export class DonateController extends GivingBaseController {
         promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
       });
       await Promise.all(promises);
-      await this.sendEmails(person.email, req.body?.church, req.body?.churchURL, funds, interval, req.body?.billing_cycle_anchor, "recurring");
+      await this.sendEmails(person.email, req.body?.church, funds, interval, billing_cycle_anchor, "recurring");
       return stripeSubscription;
     });
   }
 
-  private sendEmails = async (to: string, church: any, churchURL: string, funds: any[], interval?: { interval_count: number, interval: string }, billingCycleAnchor?: number, donationType: "recurring" | "one-time" = "recurring") => {
+  private sendEmails = async (to: string, church: { name?: string, subDomain?: string, churchURL?: string, logo?: string }, funds: any[], interval?: { interval_count: number, interval: string }, billingCycleAnchor?: number, donationType: "recurring" | "one-time" = "recurring") => {
     const contentRows: any[] = [];
 
     funds.forEach((fund, index) => {
       if (donationType === "recurring") {
         const startDate = dayjs(billingCycleAnchor).format("MMM D, YYYY");
         contentRows.push(
-          `<tr>${index === 0 ? `<td style="font-size: 15px" rowspan="${funds.length}">${interval.interval_count} ${interval.interval}<BR><span style="font-size: 13px">(from ${startDate})</span></td>`: ``}<td style="font-size: 15px">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
+          `<tr>${index === 0 ? `<td style="font-size: 15px" rowspan="${funds.length}">${interval.interval_count} ${interval.interval}<BR><span style="font-size: 13px">(from ${startDate})</span></td>`: ``}<td style="font-size: 15px; text-overflow: ellipsis; overflow: hidden;">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
         )
       } else {
         contentRows.push(
-          `<tr><td style="font-size: 15px; text-overflow: ellipsis; overflow: hidden; padding-right: 20px;">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
+          `<tr><td style="font-size: 15px; text-overflow: ellipsis; overflow: hidden;">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
         )
       }
     });
 
     const domain = Environment.appEnv === "staging" ? `${church.subDomain}.staging.b1.church` : `${church.subDomain}.b1.church`;
 
-    const contents = `
-      <h3 style="font-size: 20px;">Your ${donationType === "recurring" ? 'recurring' : ''} donation has been confirmed!</h3>
-      <table role="presentation" style="text-align: left;" cellspacing="8" width="80%">
+    const title = `${church?.logo ? `<img src="${church.logo}" alt="logo" style="width: 100%" /> ` : ``}${church.name}`;
+
+    const recurringDonationContent = `
+      <h3 style="font-size: 20px;">Your recurring donation has been confirmed!</h3>
+      <table role="presentation" style="text-align: center;" cellspacing="8" width="80%">
         <tablebody>
-          ${donationType === "recurring" ?
-            `<tr>
-              <th style="font-size: 16px" width="30%">Interval</th>
-              <th style="font-size: 16px" width="30%">Fund</th>
-              <th style="font-size: 16px" width="30%">Amount</th>
-            </tr>` :
-            `<tr>
-              <th style="font-size: 16px" width="50%">Fund</th>
-              <th style="font-size: 16px" width="50%">Amount</th>
-            </tr>`
-          }`
+          <tr>
+            <th style="font-size: 16px" width="30%">Interval</th>
+            <th style="font-size: 16px" width="30%">Fund</th>
+            <th style="font-size: 16px" width="30%">Amount</th>
+          </tr>`
           + contentRows.join(" ") +
         `</tablebody>
       </table>
-      ${donationType === "recurring" && `
-        <br />
-        <h4 style="font-size: 14px;">
-          <a href="https://${domain}/member/donate" target="_blank" rel="noreferrer noopener">Modify your subscription here!</a>
-        </h4>
-      `}
+      <br />
+      <h4 style="font-size: 14px;">
+        <a href="https://${domain}/member/donate" target="_blank" rel="noreferrer noopener">Modify your subscription here!</a>
+      </h4>
     `;
-    await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, church.name, churchURL, "Thank You For Donating", contents, "ChurchEmailTemplate.html");
+    const oneTimeDonationContent = `
+      <h3 style="font-size: 20px;">Your donation has been confirmed!</h3>
+      <table role="presentation" style="text-align: center;" cellspacing="8" width="80%">
+        <tablebody>
+          <tr>
+            <th style="font-size: 16px" width="50%">Fund</th>
+            <th style="font-size: 16px" width="50%">Amount</th>
+          </tr>`
+          + contentRows.join(" ") +
+        `</tablebody>
+      </table>
+    `;
+
+    const contents = donationType === "recurring" ? recurringDonationContent : oneTimeDonationContent;
+
+    await EmailHelper.sendTemplatedEmail(Environment.supportEmail, to, title, church.churchURL, "Thank You For Donating", contents, "ChurchEmailTemplate.html");
   }
 
   private logDonation = async (donationData: Donation, fundData: FundDonation[]) => {
