@@ -21,7 +21,6 @@ const init = async () => {
     { title: "Subscription Funds", file: "subscriptionFunds.mysql" }
   ];
 
-  await DBCreator.init(["Settings"]);
   await initTables("Giving", givingTables);
 }
 
