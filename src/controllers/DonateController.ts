@@ -109,7 +109,7 @@ export class DonateController extends GivingBaseController {
 
     const domain = Environment.appEnv === "staging" ? `${church.subDomain}.staging.b1.church` : `${church.subDomain}.b1.church`;
 
-    const title = `${church?.logo ? `<img src="${church.logo}" alt="logo" style="width: 100%" /> ` : ``}${church.name}`;
+    const title = `${church?.logo ? `<img src="${church.logo}" alt="Logo: " style="width: 100%" /> ` : ``}${church.name}`;
 
     const recurringDonationContent = `
       <h3 style="font-size: 20px;">Your recurring donation has been confirmed!</h3>
