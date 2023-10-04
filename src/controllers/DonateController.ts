@@ -3,7 +3,7 @@ import express from "express";
 import Stripe from "stripe";
 import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
-import { EncryptionHelper, EmailHelper } from "@churchapps/apihelper";
+import { EncryptionHelper, EmailHelper, CurrencyHelper } from "@churchapps/apihelper";
 import { Donation, FundDonation, DonationBatch, PaymentDetails, EventLog, Subscription, SubscriptionFund } from "../models";
 import { Environment } from "../helpers/Environment";
 import Axios from "axios"
@@ -59,7 +59,7 @@ export class DonateController extends GivingBaseController {
       }
       if (donationData.type === 'bank') paymentData.source = donationData.id;
       const stripeDonation = await StripeHelper.donate(secretKey, paymentData);
-      await this.sendEmails(donationData.person.email, donationData?.church, donationData.funds, donationData?.interval, donationData?.billing_cycle_anchor, "one-time");
+      await this.sendEmails(donationData.person.email, donationData?.church, donationData.funds, donationData?.amount, donationData?.interval, donationData?.billing_cycle_anchor, "one-time");
       return stripeDonation;
     });
   }
@@ -86,15 +86,17 @@ export class DonateController extends GivingBaseController {
         promises.push(this.repositories.subscriptionFund.save(subscriptionFund));
       });
       await Promise.all(promises);
-      await this.sendEmails(person.email, req.body?.church, funds, interval, billing_cycle_anchor, "recurring");
+      await this.sendEmails(person.email, req.body?.church, funds, amount, interval, billing_cycle_anchor, "recurring");
       return stripeSubscription;
     });
   }
 
-  private sendEmails = async (to: string, church: { name?: string, subDomain?: string, churchURL?: string, logo?: string }, funds: any[], interval?: { interval_count: number, interval: string }, billingCycleAnchor?: number, donationType: "recurring" | "one-time" = "recurring") => {
+  private sendEmails = async (to: string, church: { name?: string, subDomain?: string, churchURL?: string, logo?: string }, funds: any[], amount?: number, interval?: { interval_count: number, interval: string }, billingCycleAnchor?: number, donationType: "recurring" | "one-time" = "recurring") => {
     const contentRows: any[] = [];
+    let totalFundAmount = 0;
 
     funds.forEach((fund, index) => {
+      totalFundAmount += fund.amount;
       if (donationType === "recurring") {
         const startDate = dayjs(billingCycleAnchor).format("MMM D, YYYY");
         contentRows.push(
@@ -106,6 +108,8 @@ export class DonateController extends GivingBaseController {
         )
       }
     });
+
+    const transactionFee = amount - totalFundAmount;
 
     const domain = Environment.appEnv === "staging" ? `${church.subDomain}.staging.b1.church` : `${church.subDomain}.b1.church`;
 
@@ -121,7 +125,19 @@ export class DonateController extends GivingBaseController {
             <th style="font-size: 16px" width="30%">Amount</th>
           </tr>`
           + contentRows.join(" ") +
-        `</tablebody>
+          `${transactionFee === 0 ? '' : `
+            <tr style="border-top: solid #dee2e6 1px">
+              <td></td>
+              <th style="font-size: 15px">Transaction Fee</th>
+              <td>$${CurrencyHelper.formatCurrency(transactionFee)}</td>
+            </tr>
+            <tr style="border-top: solid #dee2e6 1px">
+              <td></td>
+              <th style="font-size: 15px">Total</th>
+              <td>$${amount}</td>
+            </tr>
+          `}
+        </tablebody>
       </table>
       <br />
       <h4 style="font-size: 14px;">
@@ -137,7 +153,17 @@ export class DonateController extends GivingBaseController {
             <th style="font-size: 16px" width="50%">Amount</th>
           </tr>`
           + contentRows.join(" ") +
-        `</tablebody>
+          `${transactionFee === 0 ? '' : `
+            <tr style="border-top: solid #dee2e6 1px">
+              <th style="font-size: 15px">Transaction Fee</th>
+              <td>$${CurrencyHelper.formatCurrency(transactionFee)}</td>
+            </tr>
+            <tr style="border-top: solid #dee2e6 1px">
+              <th style="font-size: 15px">Total</th>
+              <td>$${amount}</td>
+            </tr>
+          `}
+        </tablebody>
       </table>
     `;
 
