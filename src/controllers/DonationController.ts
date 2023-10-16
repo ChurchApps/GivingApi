@@ -3,10 +3,22 @@ import express from "express";
 import { GivingBaseController } from "./GivingBaseController"
 import { Donation } from "../models"
 import { Permissions } from '../helpers/Permissions'
+import { EmailHelper } from "@churchapps/apihelper";
+import path from "path";
 
 @controller("/donations")
 export class DonationController extends GivingBaseController {
 
+
+    @httpGet("/testEmail")
+    public async testEmail(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        return this.actionWrapperAnon(req, res, async () => {
+            await EmailHelper.sendEmail({from:"jeremy@livecs.org", to:"jeremy@livecs.org", subject:"Test Email", body:"Test Email"})
+            const filePath = path.join(__dirname, "../../src/tools/templates/test.html");
+            let result = {dir: __dirname, filePath: filePath};
+            return result;
+        });
+    }
 
     @httpGet("/summary")
     public async getSummary(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
