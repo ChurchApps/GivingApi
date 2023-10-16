@@ -13,9 +13,14 @@ export class DonationController extends GivingBaseController {
     @httpGet("/testEmail")
     public async testEmail(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapperAnon(req, res, async () => {
-            await EmailHelper.sendEmail({from:"jeremy@livecs.org", to:"jeremy@livecs.org", subject:"Test Email", body:"Test Email"})
+            let error = "";
+            try {
+              await EmailHelper.sendEmail({from:"support@churchapps.org", to:"jeremy@livecs.org", subject:"Test Email", body:"Test Email"})
+            } catch (e) {
+              error = e.toString();
+            }
             const filePath = path.join(__dirname, "../../src/tools/templates/test.html");
-            let result = {dir: __dirname, filePath: filePath};
+            let result = {dir: __dirname, filePath: filePath, error};
             return result;
         });
     }
