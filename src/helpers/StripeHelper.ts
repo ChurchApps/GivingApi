@@ -31,6 +31,7 @@ export class StripeHelper {
           unit_amount: amount * 100
         }
       }],
+      proration_behavior: 'none',
     };
     if (type === 'card') subscriptionData.default_payment_method = payment_method_id;
     if (type === 'bank') subscriptionData.default_source = payment_method_id;
