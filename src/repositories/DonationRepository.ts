@@ -73,6 +73,16 @@ export class DonationRepository {
         return DB.query(sql, [churchId, sDate, eDate]);
     }
 
+    public loadPersonBasedSummary(churchId: string, startDate: Date, endDate: Date) {
+        const sql = "SELECT d.personId, d.amount as donationAmount, fd.fundId, fd.amount as fundAmount, f.name as fundName"
+            + " FROM donations d"
+            + " INNER JOIN fundDonations fd on fd.donationId = d.id"
+            + " INNER JOIN funds f on f.id = fd.fundId"
+            + " WHERE d.churchId=?"
+            + " AND d.donationDate BETWEEN ? AND ?";
+        return DB.query(sql, [churchId, DateHelper.toMysqlDate(startDate), DateHelper.toMysqlDate(endDate)]);
+    }
+
     public convertToModel(churchId: string, data: any) {
         const result: Donation = { id: data.id, batchId: data.batchId, personId: data.personId, donationDate: data.donationDate, amount: data.amount, method: data.method, methodDetails: data.methodDetails, notes: data.notes };
         if (data.fundName !== undefined) result.fund = { id: data.fundId, name: data.fundName, amount: data.fundAmount };
@@ -95,6 +105,30 @@ export class DonationRepository {
                 result.push(weekRow);
             }
             weekRow.donations.push({ fund: { name: d.fundName }, totalAmount: d.totalAmount });
+        });
+        return result;
+    }
+
+    public convertAllToPersonSummary(churchId: string, data: any[]) {
+        const result: { personId: string, totalAmount: number, funds: { [fundName: string]: number }[] }[] = [];
+        const peopleIds = ArrayHelper.getIds(data, "personId");
+        peopleIds.forEach((id) => {
+            let totalAmount: number = 0;
+            const funds: any[] = [];
+            const personDonations = ArrayHelper.getAll(data, "personId", id); // combine all the donations for a person
+            personDonations.forEach((pd) => {
+                totalAmount += pd.donationAmount; // get total donated amount for a person
+            });
+            const fundIds = ArrayHelper.getIds(personDonations, "fundId");
+            fundIds.forEach((fuId) => {
+                let totalFundAmount: number = 0;
+                const fundBasedRecords = ArrayHelper.getAll(personDonations, "fundId", fuId); // combine all the person donations based on fundId
+                fundBasedRecords.forEach((r) => {
+                    totalFundAmount += r.fundAmount; // get total amount donated to each fund
+                });
+                funds.push({ [fundBasedRecords[0].fundName]: totalFundAmount }); // create object for each fund and the amount donated by a person
+            });
+            result.push({ personId: id, totalAmount, funds });
         });
         return result;
     }
