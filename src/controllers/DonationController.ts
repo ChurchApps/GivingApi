@@ -20,7 +20,7 @@ export class DonationController extends GivingBaseController {
               error = e.toString();
             }
             const filePath = path.join(__dirname, "../../src/tools/templates/test.html");
-            let result = {dir: __dirname, filePath: filePath, error};
+            const result = {dir: __dirname, filePath, error};
             return result;
         });
     }
@@ -32,6 +32,11 @@ export class DonationController extends GivingBaseController {
             else {
                 const startDate = (req.query.startDate === undefined) ? new Date(2000, 1, 1) : new Date(req.query.startDate.toString());
                 const endDate = (req.query.endDate === undefined) ? new Date() : new Date(req.query.endDate.toString());
+                const type = req.query.type === undefined ? "" : req.query.type;
+                if (type === "person") {
+                    const result = await this.repositories.donation.loadPersonBasedSummary(au.churchId, startDate, endDate);
+                    return this.repositories.donation.convertAllToPersonSummary(au.churchId, result);
+                }
                 const result = await this.repositories.donation.loadSummary(au.churchId, startDate, endDate);
                 return this.repositories.donation.convertAllToSummary(au.churchId, result);
             }
