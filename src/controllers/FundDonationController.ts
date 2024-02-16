@@ -29,7 +29,13 @@ export class FundDonationController extends GivingBaseController {
                         const endDate = new Date(req.query.endDate.toString());
                         result = await this.repositories.fundDonation.loadByFundIdDate(au.churchId, req.query.fundId.toString(), startDate, endDate);
                     }
-                } else result = await this.repositories.fundDonation.loadAll(au.churchId);
+                } else {
+                    if (req.query.startDate !== undefined) {
+                        result = await this.repositories.fundDonation.loadAllByDate(au.churchId, new Date(req.query.startDate.toString()), new Date(req.query.endDate.toString()));
+                    } else {
+                        result = await this.repositories.fundDonation.loadAll(au.churchId);
+                    }
+                }
                 return this.repositories.fundDonation.convertAllToModel(au.churchId, result);
             }
         });
