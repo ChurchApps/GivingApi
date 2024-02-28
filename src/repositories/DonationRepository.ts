@@ -111,6 +111,7 @@ export class DonationRepository {
 
     public convertAllToPersonSummary(churchId: string, data: any[]) {
         const result: { personId: string, totalAmount: number, funds: { [fundName: string]: number }[] }[] = [];
+
         const peopleIds = ArrayHelper.getIds(data, "personId");
         peopleIds.forEach((id) => {
             let totalAmount: number = 0;
@@ -130,6 +131,27 @@ export class DonationRepository {
             });
             result.push({ personId: id, totalAmount, funds });
         });
+
+        // for anonymous donations
+        const anonDonations = ArrayHelper.getAll(data, "personId", null);
+        if (anonDonations.length > 0) {
+            let totalAmount: number = 0;
+            const funds: any[] = [];
+            anonDonations.forEach((ad) => {
+                totalAmount += ad.donationAmount;
+            });
+            const fundIds = ArrayHelper.getIds(anonDonations, "fundId");
+            fundIds.forEach((fuId) => {
+                let totalFundAmount: number = 0;
+                const fundBasedRecords = ArrayHelper.getAll(anonDonations, "fundId", fuId);
+                fundBasedRecords.forEach((r) => {
+                    totalFundAmount += r.fundAmount;
+                });
+                funds.push({ [fundBasedRecords[0].fundName]: totalFundAmount });
+            });
+            result.push({ personId: null, totalAmount, funds });
+        }
+
         return result;
     }
 
