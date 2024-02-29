@@ -111,6 +111,14 @@ export class DonationRepository {
 
     public convertAllToPersonSummary(churchId: string, data: any[]) {
         const result: { personId: string, totalAmount: number, funds: { [fundName: string]: number }[] }[] = [];
+        const checkDecimals = (value: number) => {
+            if (value === Math.floor(value)) {
+                return value;
+            } else {
+                return +value.toFixed(2);
+            }
+        }
+
         const peopleIds = ArrayHelper.getIds(data, "personId");
         peopleIds.forEach((id) => {
             let totalAmount: number = 0;
@@ -126,10 +134,31 @@ export class DonationRepository {
                 fundBasedRecords.forEach((r) => {
                     totalFundAmount += r.fundAmount; // get total amount donated to each fund
                 });
-                funds.push({ [fundBasedRecords[0].fundName]: totalFundAmount }); // create object for each fund and the amount donated by a person
+                funds.push({ [fundBasedRecords[0].fundName]: checkDecimals(totalFundAmount) }); // create object for each fund and the amount donated by a person
             });
-            result.push({ personId: id, totalAmount, funds });
+            result.push({ personId: id, totalAmount: checkDecimals(totalAmount), funds });
         });
+
+        // for anonymous donations
+        const anonDonations = ArrayHelper.getAll(data, "personId", null);
+        if (anonDonations.length > 0) {
+            let totalAmount: number = 0;
+            const funds: any[] = [];
+            anonDonations.forEach((ad) => {
+                totalAmount += ad.donationAmount;
+            });
+            const fundIds = ArrayHelper.getIds(anonDonations, "fundId");
+            fundIds.forEach((fuId) => {
+                let totalFundAmount: number = 0;
+                const fundBasedRecords = ArrayHelper.getAll(anonDonations, "fundId", fuId);
+                fundBasedRecords.forEach((r) => {
+                    totalFundAmount += r.fundAmount;
+                });
+                funds.push({ [fundBasedRecords[0].fundName]: checkDecimals(totalFundAmount) });
+            });
+            result.push({ personId: null, totalAmount: checkDecimals(totalAmount), funds });
+        }
+
         return result;
     }
 
