@@ -32,6 +32,10 @@ export class DonationRepository {
         return DB.query("DELETE FROM donations WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
+    public deleteByBatchId(churchId: string, batchId: string) {
+        return DB.query("DELETE FROM donations WHERE churchId=? AND batchId=?;", [churchId, batchId]);
+    }
+
     public load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM donations WHERE id=? AND churchId=?;", [id, churchId]);
     }
