@@ -22,7 +22,7 @@ export class StripeHelper {
     const subscriptionData: any = {
       customer,
       metadata,
-      billing_cycle_anchor: billing_cycle_anchor ? billing_cycle_anchor / 1000 : "now",
+      billing_cycle_anchor: (billing_cycle_anchor && billing_cycle_anchor > new Date().getTime()) ? billing_cycle_anchor / 1000 : "now",
       items: [{
         price_data: {
           currency: 'usd',
