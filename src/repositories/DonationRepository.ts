@@ -56,7 +56,7 @@ export class DonationRepository {
         const sql = "SELECT d.*, f.id as fundId, f.name as fundName, fd.amount as fundAmount"
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
-            + " INNER JOIN funds f on f.id = fd.fundId"
+            + " INNER JOIN funds f on f.id = fd.fundId AND f.taxDeductible = 1"
             + " WHERE d.churchId = ? AND d.personId = ?"
             + " ORDER BY d.donationDate DESC";
         return DB.query(sql, [churchId, personId]);
@@ -69,7 +69,7 @@ export class DonationRepository {
         const sql = "SELECT STR_TO_DATE(concat(year(d.donationDate), ' ', week(d.donationDate, 0), ' Sunday'), '%X %V %W') AS week, SUM(fd.amount) as totalAmount, f.name as fundName"
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
-            + " INNER JOIN funds f on f.id = fd.fundId"
+            + " INNER JOIN funds f on f.id = fd.fundId AND f.taxDeductible = 1"
             + " WHERE d.churchId=?"
             + " AND d.donationDate BETWEEN ? AND ?"
             + " GROUP BY year(d.donationDate), week(d.donationDate, 0), f.name"
@@ -81,7 +81,7 @@ export class DonationRepository {
         const sql = "SELECT d.personId, d.amount as donationAmount, fd.fundId, fd.amount as fundAmount, f.name as fundName"
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
-            + " INNER JOIN funds f on f.id = fd.fundId"
+            + " INNER JOIN funds f on f.id = fd.fundId AND f.taxDeductible = 1"
             + " WHERE d.churchId=?"
             + " AND d.donationDate BETWEEN ? AND ?";
         return DB.query(sql, [churchId, DateHelper.toMysqlDate(startDate), DateHelper.toMysqlDate(endDate)]);
