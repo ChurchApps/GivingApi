@@ -22,7 +22,6 @@ export class StripeHelper {
     const subscriptionData: any = {
       customer,
       metadata,
-      billing_cycle_anchor: (billing_cycle_anchor && billing_cycle_anchor > new Date().getTime()) ? billing_cycle_anchor / 1000 : "now",
       items: [{
         price_data: {
           currency: 'usd',
@@ -33,6 +32,8 @@ export class StripeHelper {
       }],
       proration_behavior: 'none',
     };
+    //billing_cycle_anchor: (billing_cycle_anchor && billing_cycle_anchor > new Date().getTime()) ? billing_cycle_anchor / 1000 : "now",
+    if (billing_cycle_anchor && billing_cycle_anchor > new Date().getTime()) subscriptionData.billing_cycle_anchor = billing_cycle_anchor / 1000;
     if (type === 'card') subscriptionData.default_payment_method = payment_method_id;
     if (type === 'bank') subscriptionData.default_source = payment_method_id;
     return await stripe.subscriptions.create(subscriptionData);
