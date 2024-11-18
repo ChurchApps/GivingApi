@@ -53,11 +53,11 @@ export class DonationRepository {
     }
 
     public loadByPersonId(churchId: string, personId: string) {
-        const sql = "SELECT d.*, f.id as fundId, f.name as fundName, fd.amount as fundAmount"
+        const sql = "SELECT d.*, f.id as fundId, IFNULL(f.name, 'Unkown') as fundName, fd.amount as fundAmount"
             + " FROM donations d"
             + " INNER JOIN fundDonations fd on fd.donationId = d.id"
-            + " INNER JOIN funds f on f.id = fd.fundId AND f.taxDeductible = 1"
-            + " WHERE d.churchId = ? AND d.personId = ?"
+            + " LEFT JOIN funds f on f.id = fd.fundId"
+            + " WHERE d.churchId = ? AND d.personId = ? AND (f.taxDeductible = 1 OR f.taxDeductible IS NULL)"
             + " ORDER BY d.donationDate DESC";
         return DB.query(sql, [churchId, personId]);
     }
