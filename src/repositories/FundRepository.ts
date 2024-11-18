@@ -6,11 +6,11 @@ import { Fund } from "../models";
 export class FundRepository {
 
     public async getOrCreateGeneral(churchId: string) {
-        const data = await DB.queryOne("SELECT * FROM funds WHERE churchId=? AND name='General Fund' AND removed=0;", [churchId]);
+        const data = await DB.queryOne("SELECT * FROM funds WHERE churchId=? AND name='(General Fund)' AND removed=0;", [churchId]);
 
         if (data !== null) return this.convertToModel(churchId, data);
         else {
-            const fund: Fund = { churchId, name: "General Fund" };
+            const fund: Fund = { churchId, name: "(General Fund)" };
             await this.save(fund);
             return fund;
         }
@@ -44,7 +44,7 @@ export class FundRepository {
     }
 
     public loadAll(churchId: string) {
-        return DB.query("SELECT * FROM funds WHERE churchId=? AND removed=0;", [churchId]);
+        return DB.query("SELECT * FROM funds WHERE churchId=? AND removed=0 ORDER BY name;", [churchId]);
     }
 
     public convertToModel(churchId: string, data: any) {
