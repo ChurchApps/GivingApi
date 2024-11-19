@@ -43,6 +43,14 @@ export class DonationController extends GivingBaseController {
         });
     }
 
+    @httpGet("/my")
+    public async getMy(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        return this.actionWrapper(req, res, async (au) => {
+            const result = await this.repositories.donation.loadByPersonId(au.churchId, au.personId);
+            return this.repositories.donation.convertAllToModel(au.churchId, result);
+        });
+    }
+
     @httpGet("/:id")
     public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {

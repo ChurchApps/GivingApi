@@ -7,6 +7,13 @@ import { Permissions } from '../helpers/Permissions'
 @controller("/funddonations")
 export class FundDonationController extends GivingBaseController {
 
+    @httpGet("/my")
+    public async getMy(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+      return this.actionWrapper(req, res, async (au) => {
+        return this.repositories.fundDonation.loadByPersonId(au.churchId, au.personId);
+      });
+    }
+
     @httpGet("/:id")
     public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
@@ -15,13 +22,17 @@ export class FundDonationController extends GivingBaseController {
         });
     }
 
+    
+
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
             else {
                 let result;
+
                 if (req.query.donationId !== undefined) result = await this.repositories.fundDonation.loadByDonationId(au.churchId, req.query.donationId.toString());
+                else if (req.query.personId !== undefined) result = await this.repositories.fundDonation.loadByPersonId(au.churchId, req.query.personId.toString());
                 else if (req.query.fundId !== undefined) {
                     if (req.query.startDate === undefined) result = await this.repositories.fundDonation.loadByFundId(au.churchId, req.query.fundId.toString());
                     else {

@@ -45,6 +45,10 @@ export class FundDonationRepository {
         return DB.query("SELECT * FROM fundDonations WHERE churchId=? AND donationId=?;", [churchId, donationId]);
     }
 
+    public loadByPersonId(churchId: string, personId: string) {
+      return DB.query("SELECT fd.* FROM donations d inner join fundDonations fd on fd.churchId=d.churchId and fd.donationId=d.id WHERE d.churchId=? AND d.personId=?;", [churchId, personId]);
+  }
+
     public loadByFundId(churchId: string, fundId: string) {
         return DB.query("SELECT fd.*, d.donationDate, d.batchId, d.personId FROM fundDonations fd INNER JOIN donations d ON d.id=fd.donationId WHERE fd.churchId=? AND fd.fundId=? ORDER by d.donationDate desc;", [churchId, fundId]);
     }
