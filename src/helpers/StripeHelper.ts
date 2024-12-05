@@ -189,11 +189,11 @@ export class StripeHelper {
     const { method, methodDetails } = await this.getPaymentDetails(secretKey, eventData);
     const batch: DonationBatch = await Repositories.getCurrent().donationBatch.getOrCreateCurrent(churchId);
     const donationData: Donation = { batchId: batch.id, amount, churchId, personId, method, methodDetails, donationDate: new Date(eventData.created * 1000), notes: eventData?.metadata?.notes };
-    const funds = eventData.metadata.funds ? JSON.parse(eventData.metadata.funds) : await Repositories.getCurrent().subscriptionFund.loadBySubscriptionId(churchId, eventData.subscription);
+    const funds = eventData.metadata.funds ? JSON.parse(eventData.metadata.funds) : await Repositories.getCurrent().subscriptionFund.loadForSubscriptionLog(churchId, eventData.subscription);
     const donation: Donation = await Repositories.getCurrent().donation.save(donationData);
     const promises: Promise<FundDonation>[] = [];
     funds.forEach((fund: FundDonation) => {
-      const fundDonation: FundDonation = { churchId, amount: fund.amount, donationId: donation.id, fundId: fund.id };
+      const fundDonation: FundDonation = { churchId, amount: fund.amount, donationId: donation.id, fundId: fund.fundId };
       promises.push(Repositories.getCurrent().fundDonation.save(fundDonation));
     });
     return await Promise.all(promises);

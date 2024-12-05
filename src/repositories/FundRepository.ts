@@ -11,8 +11,8 @@ export class FundRepository {
         if (data !== null) return this.convertToModel(churchId, data);
         else {
             const fund: Fund = { churchId, name: "(General Fund)" };
-            await this.save(fund);
-            return fund;
+            const result =await this.save(fund);
+            return result;
         }
     }
 

@@ -22,7 +22,7 @@ export class FundDonationController extends GivingBaseController {
         });
     }
 
-    
+
 
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {

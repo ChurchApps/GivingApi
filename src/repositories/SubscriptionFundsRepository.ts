@@ -1,6 +1,7 @@
 import { injectable } from "inversify";
 import { DB, UniqueIdHelper } from "@churchapps/apihelper";
 import { SubscriptionFund } from "../models";
+import { Repositories } from "./Repositories";
 
 @injectable()
 export class SubscriptionFundsRepository {
@@ -41,6 +42,26 @@ export class SubscriptionFundsRepository {
             + " LEFT JOIN funds ON subscriptionFunds.fundId = funds.id"
             + " WHERE subscriptionFunds.churchId=? AND subscriptionFunds.subscriptionId=?";
         return DB.query(sql, [churchId, subscriptionId]);
+    }
+
+    //If the fund gets deleted for a recurring donation, the donations will go to '(General Fund)'
+    public async loadForSubscriptionLog(churchId: string, subscriptionId: string) {
+        let result;
+        const sql = "SELECT subscriptionFunds.*, funds.name, funds.removed FROM subscriptionFunds"
+            + " LEFT JOIN funds ON subscriptionFunds.fundId = funds.id"
+            + " WHERE subscriptionFunds.churchId=? AND subscriptionFunds.subscriptionId=?";
+        const subscriptionFund = await DB.query(sql, [churchId, subscriptionId]);
+        if (subscriptionFund && subscriptionFund[0].removed === false) {
+            const { removed, ...sf } = subscriptionFund[0];
+            result = [sf];
+        } else {
+            const generalFund = await Repositories.getCurrent().fund.getOrCreateGeneral(churchId);
+            const { removed, ...sf } = subscriptionFund[0];
+            sf.fundId = generalFund.id;
+            sf.name = generalFund.name;
+            result = [sf];
+        }
+        return result;
     }
 
     public async loadAll(churchId: string) {
