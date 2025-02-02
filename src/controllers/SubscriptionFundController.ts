@@ -32,7 +32,10 @@ export class SubscriptionFundController extends GivingBaseController {
     public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
-            else await this.repositories.subscriptionFund.delete(au.churchId, id);
+            else {
+                await this.repositories.subscriptionFund.delete(au.churchId, id);
+                return this.json({});
+            }
         });
     }
 
@@ -41,7 +44,10 @@ export class SubscriptionFundController extends GivingBaseController {
         return this.actionWrapper(req, res, async (au) => {
             const permission = au.checkAccess(Permissions.donations.edit) || (await this.repositories.subscription.load(au.churchId, id)).personId === au.personId;
             if (!permission) return this.json({}, 401);
-            else await this.repositories.subscriptionFund.deleteBySubscriptionId(au.churchId, id);
+            else {
+                await this.repositories.subscriptionFund.deleteBySubscriptionId(au.churchId, id);
+                return this.json({});
+            }
         });
     }
 
