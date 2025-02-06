@@ -69,7 +69,10 @@ export class FundDonationController extends GivingBaseController {
     public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
-            else await this.repositories.fundDonation.delete(au.churchId, au.churchId);
+            else {
+                await this.repositories.fundDonation.delete(au.churchId, au.churchId);
+                return this.json({});
+            }
         });
     }
 

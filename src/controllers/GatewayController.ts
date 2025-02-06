@@ -89,6 +89,7 @@ export class GatewayController extends GivingBaseController {
           await StripeHelper.deleteWebhooksByChurchId(privateKey, au.churchId);
         }
         await this.repositories.gateway.delete(au.churchId, id);
+        return this.json({});
       }
     });
   }

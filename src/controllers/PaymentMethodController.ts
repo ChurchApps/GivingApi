@@ -114,6 +114,7 @@ export class PaymentMethodController extends GivingBaseController {
         const paymentType = id.substring(0, 2);
         if (paymentType === 'pm') await StripeHelper.detachPaymentMethod(secretKey, id);
         if (paymentType === 'ba') await StripeHelper.deleteBankAccount(secretKey, customerId, id);
+        return this.json({});
       }
     });
   }

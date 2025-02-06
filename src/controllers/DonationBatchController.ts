@@ -49,6 +49,7 @@ export class DonationBatchController extends GivingBaseController {
             else {
                 await this.repositories.donationBatch.delete(au.churchId, id);
                 await this.repositories.donation.deleteByBatchId(au.churchId, id);
+                return this.json({});
             }
         });
     }
