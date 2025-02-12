@@ -7,7 +7,7 @@ export class StripeHelper {
 
   static donate = async (secretKey: string, payment: PaymentDetails) => {
     const stripe = StripeHelper.getStripeObj(secretKey);
-    payment.amount = payment.amount * 100;
+    payment.amount = Math.trunc(Math.round(payment.amount * 100));
     try {
       if (payment?.payment_method) return await stripe.paymentIntents.create(payment);
       if (payment?.source) return await stripe.charges.create(payment);
@@ -27,7 +27,7 @@ export class StripeHelper {
           currency: 'usd',
           product: productId,
           recurring: interval,
-          unit_amount: amount * 100
+          unit_amount: Math.trunc(Math.round(amount * 100))
         }
       }],
       proration_behavior: 'none',
@@ -50,7 +50,7 @@ export class StripeHelper {
         id: sub.items.data[0].id,
         price_data: {
           product: sub.plan.product,
-          unit_amount: sub.plan.amount,
+          unit_amount: Math.trunc(Math.round(sub.plan.amount)),
           currency: 'usd',
           recurring: {
             interval: sub.plan.interval,
