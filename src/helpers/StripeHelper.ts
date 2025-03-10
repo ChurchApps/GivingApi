@@ -193,7 +193,7 @@ export class StripeHelper {
     const donation: Donation = await Repositories.getCurrent().donation.save(donationData);
     const promises: Promise<FundDonation>[] = [];
     funds.forEach((fund: FundDonation) => {
-      const fundDonation: FundDonation = { churchId, amount: fund.amount, donationId: donation.id, fundId: fund.fundId };
+      const fundDonation: FundDonation = { churchId, amount: fund.amount, donationId: donation.id, fundId: fund.id };
       promises.push(Repositories.getCurrent().fundDonation.save(fundDonation));
     });
     return await Promise.all(promises);
