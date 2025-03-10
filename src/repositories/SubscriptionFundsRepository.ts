@@ -44,7 +44,7 @@ export class SubscriptionFundsRepository {
         return DB.query(sql, [churchId, subscriptionId]);
     }
 
-    //If the fund gets deleted for a recurring donation, the donations will go to '(General Fund)'
+    // If the fund gets deleted for a recurring donation, the donations will go to '(General Fund)'
     public async loadForSubscriptionLog(churchId: string, subscriptionId: string) {
         let result;
         const sql = "SELECT subscriptionFunds.*, funds.name, funds.removed FROM subscriptionFunds"
