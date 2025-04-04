@@ -5,6 +5,6 @@
   "fileStore": "disk",
   "mailSystem": "",
   "s3Bucket": "",
-  "membershipApi": "https://membershipapi.staging.churchapps.org",
+  "membershipApi": "http://localhost:8083",
   "supportEmail": "support@churchapps.org"
 }

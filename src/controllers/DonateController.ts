@@ -91,6 +91,16 @@ export class DonateController extends GivingBaseController {
     });
   }
 
+  @httpPost("/fee")
+  public async calculateFee(req: express.Request<{}, {}, { type: string, amount: number }>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    return this.actionWrapperAnon(req, res, async () => {
+      const { type, amount } = req.body;
+      const { churchId } = req.query;
+      if (type === "creditCard") return { calculatedFee: await this.getCreditCardFees(amount, churchId?.toString()) };
+      else if (type === "ach") return { calculatedFee: await this.getACHFees(amount, churchId?.toString()) };
+    });
+  }
+
   private sendEmails = async (to: string, church: { name?: string, subDomain?: string, churchURL?: string, logo?: string }, funds: any[], amount?: number, interval?: { interval_count: number, interval: string }, billingCycleAnchor?: number, donationType: "recurring" | "one-time" = "recurring") => {
     const contentRows: any[] = [];
     let totalFundAmount = 0;
@@ -187,6 +197,40 @@ export class DonateController extends GivingBaseController {
   private loadPrivateKey = async (churchId: string) => {
     const gateways = await this.repositories.gateway.loadAll(churchId);
     return (gateways.length === 0) ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
+  }
+
+  private getCreditCardFees = async (amount: number, churchId: string) => {
+    let customFixedFee: number | null = null;
+    let customPercentFee: number | null = null;
+    if (churchId) {
+      const response = await Axios.get(Environment.membershipApi + "/settings/public/" + churchId);
+      const data = response.data;
+
+      if (data?.flatRateCC && data.flatRateCC !== null && data.flatRateCC !== undefined && data.flatRateCC !== "") customFixedFee = +data.flatRateCC;
+      if (data?.transFeeCC && data.transFeeCC !== null && data.transFeeCC !== undefined && data.transFeeCC !== "") customPercentFee = (+data.transFeeCC / 100);
+    }
+    const fixedFee = customFixedFee ?? 0.30; // default to $0.30 if not provided
+    const fixedPercent = customPercentFee ?? 0.029; // default to 2.9% if not provided
+
+    return Math.round(((amount + fixedFee) / (1 - fixedPercent) - amount) * 100) / 100;
+  }
+
+  private getACHFees = async (amount: number, churchId: string) => {
+    let customPercentFee: number | null = null;
+    let customMaxFee: number | null = null;
+    if (churchId) {
+      const response = await Axios.get(Environment.membershipApi + "/settings/public/" + churchId);
+      const data = response.data;
+
+      if (data?.flatRateACH && data.flatRateACH !== null && data.flatRateACH !== undefined && data.flatRateACH !== "") customPercentFee = (+data.flatRateACH / 100);
+      if (data?.hardLimitACH && data.hardLimitACH !== null && data.hardLimitACH !== undefined && data.hardLimitACH !== "") customMaxFee = +data.hardLimitACH;
+    }
+
+    const fixedPercent = customPercentFee ?? 0.008; // default to 0.8% if not provided
+    const fixedMaxFee = customMaxFee ?? 5.00 // default to $5 if not provided
+
+    const fee = amount * fixedPercent;
+    return Math.min(fee, fixedMaxFee);
   }
 
   @httpPost("/captcha-verify")
