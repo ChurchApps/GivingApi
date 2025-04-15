@@ -229,7 +229,7 @@ export class DonateController extends GivingBaseController {
     const fixedPercent = customPercentFee ?? 0.008; // default to 0.8% if not provided
     const fixedMaxFee = customMaxFee ?? 5.00 // default to $5 if not provided
 
-    const fee = amount * fixedPercent;
+    const fee = Math.round(((amount) / (1 - fixedPercent) - amount) * 100) / 100;
     return Math.min(fee, fixedMaxFee);
   }
 
