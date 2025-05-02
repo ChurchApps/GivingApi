@@ -17,6 +17,7 @@ const init = async () => {
     { title: "Gateways", file: "gateways.mysql" },
     { title: "Customers", file: "customers.mysql" },
     { title: "Event Logs", file: "eventLogs.mysql" },
+    { title: "Settings", file: "settings.mysql" },
     { title: "Subscriptions", file: "subscriptions.mysql" },
     { title: "Subscription Funds", file: "subscriptionFunds.mysql" }
   ];
