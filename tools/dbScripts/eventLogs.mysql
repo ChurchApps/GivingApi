@@ -11,4 +11,4 @@ CREATE TABLE `eventLogs` (
   `created` datetime DEFAULT NULL,
   `resolved` boolean DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB;

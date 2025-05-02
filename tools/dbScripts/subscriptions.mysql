@@ -6,4 +6,4 @@ CREATE TABLE `subscriptions` (
   `personId` varchar(11) DEFAULT NULL,
   `customerId` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB;

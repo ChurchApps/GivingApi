@@ -11,4 +11,4 @@ CREATE TABLE `donations` (
   `methodDetails` varchar(255) DEFAULT NULL,
   `notes` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB;

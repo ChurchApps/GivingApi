@@ -7,4 +7,4 @@ CREATE TABLE `subscriptionFunds` (
   `fundId` varchar(11) DEFAULT NULL,
   `amount` double DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB;

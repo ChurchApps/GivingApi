@@ -6,4 +6,4 @@ CREATE TABLE `donationBatches` (
   `name` varchar(50) DEFAULT NULL,
   `batchDate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB;

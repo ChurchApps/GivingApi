@@ -5,4 +5,4 @@ CREATE TABLE `customers` (
   `churchId` char(11) DEFAULT NULL,
   `personId` char(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB;
