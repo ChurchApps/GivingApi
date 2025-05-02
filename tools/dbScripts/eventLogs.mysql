@@ -9,6 +9,8 @@ CREATE TABLE `eventLogs` (
   `eventType` varchar(50) DEFAULT NULL,
   `message` text,
   `created` datetime DEFAULT NULL,
-  `resolved` boolean DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `resolved` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_church_status_created` (`churchId`, `status`, `created`),
+  KEY `idx_customer` (`customerId`)
 ) ENGINE=InnoDB;
