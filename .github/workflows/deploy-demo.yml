@@ -92,4 +92,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
       - name: Deploy API
-        run: npm run deploy-demo
+        run:
+          |
+          npm install
+          npm run deploy-staging
