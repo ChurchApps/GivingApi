@@ -10,6 +10,8 @@
     "deploy-staging": "npm-run-all build copy-assets exec-deploy-staging",
     "exec-deploy-prod": "serverless deploy --stage Prod",
     "deploy-prod": "npm-run-all build copy-assets exec-deploy-prod",
+    "exec-deploy-demo": "serverless deploy --stage Demo",
+    "deploy-demo": "npm-run-all build copy-assets exec-deploy-demo",
     "initdb": "ts-node tools/initdb",
     "lint": "tslint -c tslint.json -p tsconfig.json --fix",
     "tsc": "tsc",
