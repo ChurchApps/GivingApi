@@ -12,74 +12,74 @@ TRUNCATE TABLE settings;
 
 
 -- Funds
-INSERT INTO funds (id, churchId, name, description, isDefault, isTaxDeductible, sortOrder) VALUES
-('FUN00000001', 'CHU00000001', 'General Fund', 'General church operations and ministry', 1, 1, 1),
-('FUN00000002', 'CHU00000001', 'Building Fund', 'Building maintenance and improvements', 0, 1, 2),
-('FUN00000003', 'CHU00000001', 'Missions Fund', 'Local and global missions support', 0, 1, 3),
-('FUN00000004', 'CHU00000001', 'Youth Ministry', 'Youth programs and activities', 0, 1, 4),
-('FUN00000005', 'CHU00000001', 'Food Pantry', 'Community food pantry ministry', 0, 1, 5),
-('FUN00000006', 'CHU00000001', 'Benevolence Fund', 'Helping those in need', 0, 1, 6);
+INSERT INTO funds (id, churchId, name, taxDeductible, removed, productId) VALUES
+('FUN00000001', 'CHU00000001', 'General Fund', 1, 0, NULL),
+('FUN00000002', 'CHU00000001', 'Building Fund', 1, 0, NULL),
+('FUN00000003', 'CHU00000001', 'Missions Fund', 1, 0, NULL),
+('FUN00000004', 'CHU00000001', 'Youth Ministry', 1, 0, NULL),
+('FUN00000005', 'CHU00000001', 'Food Pantry', 1, 0, NULL),
+('FUN00000006', 'CHU00000001', 'Benevolence Fund', 1, 0, NULL);
 
 -- Gateways
-INSERT INTO gateways (id, churchId, provider, publicKey, privateKey, isActive) VALUES
-('GAT00000001', 'CHU00000001', 'STRIPE', 'pk_test_51NxYz2KJh8LmNpQrStUvWxYz', 'sk_test_51NxYz2KJh8LmNpQrStUvWxYz', 1),
+INSERT INTO gateways (id, churchId, provider, publicKey, privateKey, webhookKey, productId, payFees) VALUES
+('GAT00000001', 'CHU00000001', 'STRIPE', 'pk_test_51NxYz2KJh8LmNpQrStUvWxYz', 'sk_test_51NxYz2KJh8LmNpQrStUvWxYz', NULL, NULL, 0);
 
 -- Customers (mapped to people from membership demo)
-INSERT INTO customers (id, churchId, personId, email, name, gatewayCustomerId, gatewayProvider) VALUES
+INSERT INTO customers (id, churchId, personId) VALUES
 -- Regular givers
-('CUS00000001', 'CHU00000001', 'PER00000001', 'john.smith@email.com', 'John Smith', 'cus_123456789', 'STRIPE'),
-('CUS00000002', 'CHU00000001', 'PER00000006', 'robert.johnson@email.com', 'Robert Johnson', 'cus_234567890', 'STRIPE'),
-('CUS00000003', 'CHU00000001', 'PER00000016', 'thomas.jones@email.com', 'Thomas Jones', 'cus_345678901', 'STRIPE'),
-('CUS00000004', 'CHU00000001', 'PER00000021', 'carlos.garcia@email.com', 'Carlos Garcia', 'cus_456789012', 'STRIPE'),
-('CUS00000005', 'CHU00000001', 'PER00000025', 'richard.miller@email.com', 'Richard Miller', 'cus_567890123', 'STRIPE'),
+('CUS00000001', 'CHU00000001', 'PER00000001'),
+('CUS00000002', 'CHU00000001', 'PER00000006'),
+('CUS00000003', 'CHU00000001', 'PER00000016'),
+('CUS00000004', 'CHU00000001', 'PER00000021'),
+('CUS00000005', 'CHU00000001', 'PER00000025'),
 -- Additional givers
-('CUS00000006', 'CHU00000001', 'PER00000027', 'michael.davis@email.com', 'Michael Davis', 'cus_678901234', 'STRIPE'),
-('CUS00000007', 'CHU00000001', 'PER00000036', 'miguel.hernandez@email.com', 'Miguel Hernandez', 'cus_789012345', 'STRIPE'),
-('CUS00000008', 'CHU00000001', 'PER00000044', 'roberto.gonzalez@email.com', 'Roberto Gonzalez', 'cus_890123456', 'STRIPE'),
-('CUS00000009', 'CHU00000001', 'PER00000049', 'james.wilson@email.com', 'James Wilson', 'cus_901234567', 'STRIPE'),
-('CUS00000010', 'CHU00000001', 'PER00000056', 'christopher.thomas@email.com', 'Christopher Thomas', 'cus_012345678', 'STRIPE');
+('CUS00000006', 'CHU00000001', 'PER00000027'),
+('CUS00000007', 'CHU00000001', 'PER00000036'),
+('CUS00000008', 'CHU00000001', 'PER00000044'),
+('CUS00000009', 'CHU00000001', 'PER00000049'),
+('CUS00000010', 'CHU00000001', 'PER00000056');
 
 -- Donation Batches (Weekly batches for March-May 2025)
-INSERT INTO donationBatches (id, churchId, batchDate, status, totalAmount, count) VALUES
+INSERT INTO donationBatches (id, churchId, name, batchDate) VALUES
 -- March 2025
-('BAT00000001', 'CHU00000001', '2025-03-02', 'Closed', 8750.00, 45),
-('BAT00000002', 'CHU00000001', '2025-03-09', 'Closed', 8925.00, 47),
-('BAT00000003', 'CHU00000001', '2025-03-16', 'Closed', 9100.00, 48),
-('BAT00000004', 'CHU00000001', '2025-03-23', 'Closed', 8975.00, 46),
-('BAT00000005', 'CHU00000001', '2025-03-30', 'Closed', 9250.00, 49),
+('BAT00000001', 'CHU00000001', 'March 2, 2025 Batch', '2025-03-02 00:00:00'),
+('BAT00000002', 'CHU00000001', 'March 9, 2025 Batch', '2025-03-09 00:00:00'),
+('BAT00000003', 'CHU00000001', 'March 16, 2025 Batch', '2025-03-16 00:00:00'),
+('BAT00000004', 'CHU00000001', 'March 23, 2025 Batch', '2025-03-23 00:00:00'),
+('BAT00000005', 'CHU00000001', 'March 30, 2025 Batch', '2025-03-30 00:00:00'),
 -- April 2025
-('BAT00000006', 'CHU00000001', '2025-04-06', 'Closed', 9450.00, 50),
-('BAT00000007', 'CHU00000001', '2025-04-13', 'Closed', 9325.00, 48),
-('BAT00000008', 'CHU00000001', '2025-04-20', 'Closed', 9600.00, 51),
-('BAT00000009', 'CHU00000001', '2025-04-27', 'Closed', 9475.00, 49),
+('BAT00000006', 'CHU00000001', 'April 6, 2025 Batch', '2025-04-06 00:00:00'),
+('BAT00000007', 'CHU00000001', 'April 13, 2025 Batch', '2025-04-13 00:00:00'),
+('BAT00000008', 'CHU00000001', 'April 20, 2025 Batch', '2025-04-20 00:00:00'),
+('BAT00000009', 'CHU00000001', 'April 27, 2025 Batch', '2025-04-27 00:00:00'),
 -- May 2025
-('BAT00000010', 'CHU00000001', '2025-05-04', 'Closed', 9750.00, 52),
-('BAT00000011', 'CHU00000001', '2025-05-11', 'Closed', 9625.00, 50),
-('BAT00000012', 'CHU00000001', '2025-05-18', 'Closed', 9900.00, 53),
-('BAT00000013', 'CHU00000001', '2025-05-25', 'Closed', 9775.00, 51);
+('BAT00000010', 'CHU00000001', 'May 4, 2025 Batch', '2025-05-04 00:00:00'),
+('BAT00000011', 'CHU00000001', 'May 11, 2025 Batch', '2025-05-11 00:00:00'),
+('BAT00000012', 'CHU00000001', 'May 18, 2025 Batch', '2025-05-18 00:00:00'),
+('BAT00000013', 'CHU00000001', 'May 25, 2025 Batch', '2025-05-25 00:00:00');
 
 -- Sample Donations (showing pattern for first few weeks - will add more in next edit)
-INSERT INTO donations (id, churchId, batchId, customerId, amount, paymentMethod, status, date, notes) VALUES
+INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES
 -- March 2, 2025 (Week 1)
-('DON00000001', 'CHU00000001', 'BAT00000001', 'CUS00000001', 500.00, 'Credit Card', 'Completed', '2025-03-02 10:15:00', 'Monthly tithe'),
-('DON00000002', 'CHU00000001', 'BAT00000001', 'CUS00000002', 250.00, 'Credit Card', 'Completed', '2025-03-02 10:20:00', 'Monthly giving'),
-('DON00000003', 'CHU00000001', 'BAT00000001', 'CUS00000003', 300.00, 'Credit Card', 'Completed', '2025-03-02 10:25:00', 'Monthly tithe'),
-('DON00000004', 'CHU00000001', 'BAT00000001', 'CUS00000004', 200.00, 'Credit Card', 'Completed', '2025-03-02 10:30:00', 'Monthly giving'),
-('DON00000005', 'CHU00000001', 'BAT00000001', 'CUS00000005', 400.00, 'Credit Card', 'Completed', '2025-03-02 10:35:00', 'Monthly tithe'),
+('DON00000001', 'CHU00000001', 'BAT00000001', 'PER00000001', '2025-03-02 10:15:00', 500.00, 'Credit Card', 'STRIPE', 'Monthly tithe'),
+('DON00000002', 'CHU00000001', 'BAT00000001', 'PER00000006', '2025-03-02 10:20:00', 250.00, 'Credit Card', 'STRIPE', 'Monthly giving'),
+('DON00000003', 'CHU00000001', 'BAT00000001', 'PER00000016', '2025-03-02 10:25:00', 300.00, 'Credit Card', 'STRIPE', 'Monthly tithe'),
+('DON00000004', 'CHU00000001', 'BAT00000001', 'PER00000021', '2025-03-02 10:30:00', 200.00, 'Credit Card', 'STRIPE', 'Monthly giving'),
+('DON00000005', 'CHU00000001', 'BAT00000001', 'PER00000025', '2025-03-02 10:35:00', 400.00, 'Credit Card', 'STRIPE', 'Monthly tithe'),
 
 -- March 9, 2025 (Week 2)
-('DON00000006', 'CHU00000001', 'BAT00000002', 'CUS00000001', 500.00, 'Credit Card', 'Completed', '2025-03-09 10:15:00', 'Monthly tithe'),
-('DON00000007', 'CHU00000001', 'BAT00000002', 'CUS00000002', 250.00, 'Credit Card', 'Completed', '2025-03-09 10:20:00', 'Monthly giving'),
-('DON00000008', 'CHU00000001', 'BAT00000002', 'CUS00000003', 300.00, 'Credit Card', 'Completed', '2025-03-09 10:25:00', 'Monthly tithe'),
-('DON00000009', 'CHU00000001', 'BAT00000002', 'CUS00000004', 200.00, 'Credit Card', 'Completed', '2025-03-09 10:30:00', 'Monthly giving'),
-('DON00000010', 'CHU00000001', 'BAT00000002', 'CUS00000005', 400.00, 'Credit Card', 'Completed', '2025-03-09 10:35:00', 'Monthly tithe'),
+('DON00000006', 'CHU00000001', 'BAT00000002', 'PER00000001', '2025-03-09 10:15:00', 500.00, 'Credit Card', 'STRIPE', 'Monthly tithe'),
+('DON00000007', 'CHU00000001', 'BAT00000002', 'PER00000006', '2025-03-09 10:20:00', 250.00, 'Credit Card', 'STRIPE', 'Monthly giving'),
+('DON00000008', 'CHU00000001', 'BAT00000002', 'PER00000016', '2025-03-09 10:25:00', 300.00, 'Credit Card', 'STRIPE', 'Monthly tithe'),
+('DON00000009', 'CHU00000001', 'BAT00000002', 'PER00000021', '2025-03-09 10:30:00', 200.00, 'Credit Card', 'STRIPE', 'Monthly giving'),
+('DON00000010', 'CHU00000001', 'BAT00000002', 'PER00000025', '2025-03-09 10:35:00', 400.00, 'Credit Card', 'STRIPE', 'Monthly tithe'),
 
 -- March 16, 2025 (Week 3)
-('DON00000011', 'CHU00000001', 'BAT00000003', 'CUS00000001', 500.00, 'Credit Card', 'Completed', '2025-03-16 10:15:00', 'Monthly tithe'),
-('DON00000012', 'CHU00000001', 'BAT00000003', 'CUS00000002', 250.00, 'Credit Card', 'Completed', '2025-03-16 10:20:00', 'Monthly giving'),
-('DON00000013', 'CHU00000001', 'BAT00000003', 'CUS00000003', 300.00, 'Credit Card', 'Completed', '2025-03-16 10:25:00', 'Monthly tithe'),
-('DON00000014', 'CHU00000001', 'BAT00000003', 'CUS00000004', 200.00, 'Credit Card', 'Completed', '2025-03-16 10:30:00', 'Monthly giving'),
-('DON00000015', 'CHU00000001', 'BAT00000003', 'CUS00000005', 400.00, 'Credit Card', 'Completed', '2025-03-16 10:35:00', 'Monthly tithe');
+('DON00000011', 'CHU00000001', 'BAT00000003', 'PER00000001', '2025-03-16 10:15:00', 500.00, 'Credit Card', 'STRIPE', 'Monthly tithe'),
+('DON00000012', 'CHU00000001', 'BAT00000003', 'PER00000006', '2025-03-16 10:20:00', 250.00, 'Credit Card', 'STRIPE', 'Monthly giving'),
+('DON00000013', 'CHU00000001', 'BAT00000003', 'PER00000016', '2025-03-16 10:25:00', 300.00, 'Credit Card', 'STRIPE', 'Monthly tithe'),
+('DON00000014', 'CHU00000001', 'BAT00000003', 'PER00000021', '2025-03-16 10:30:00', 200.00, 'Credit Card', 'STRIPE', 'Monthly giving'),
+('DON00000015', 'CHU00000001', 'BAT00000003', 'PER00000025', '2025-03-16 10:35:00', 400.00, 'Credit Card', 'STRIPE', 'Monthly tithe');
 
 -- Fund Donations (showing pattern for first few donations - will add more in next edit)
 INSERT INTO fundDonations (id, churchId, donationId, fundId, amount) VALUES
@@ -96,12 +96,12 @@ INSERT INTO fundDonations (id, churchId, donationId, fundId, amount) VALUES
 ('FDO00000010', 'CHU00000001', 'DON00000005', 'FUN00000006', 80.00);  -- Benevolence Fund
 
 -- Subscriptions (monthly recurring donations)
-INSERT INTO subscriptions (id, churchId, customerId, status, startDate, endDate, interval, intervalCount, amount) VALUES
-('SUB00000001', 'CHU00000001', 'CUS00000001', 'Active', '2025-01-01', NULL, 'month', 1, 500.00),
-('SUB00000002', 'CHU00000001', 'CUS00000002', 'Active', '2025-01-01', NULL, 'month', 1, 250.00),
-('SUB00000003', 'CHU00000001', 'CUS00000003', 'Active', '2025-01-01', NULL, 'month', 1, 300.00),
-('SUB00000004', 'CHU00000001', 'CUS00000004', 'Active', '2025-01-01', NULL, 'month', 1, 200.00),
-('SUB00000005', 'CHU00000001', 'CUS00000005', 'Active', '2025-01-01', NULL, 'month', 1, 400.00);
+INSERT INTO subscriptions (id, churchId, personId, customerId) VALUES
+('SUB00000001', 'CHU00000001', 'PER00000001', 'cus_123456789'),
+('SUB00000002', 'CHU00000001', 'PER00000006', 'cus_234567890'),
+('SUB00000003', 'CHU00000001', 'PER00000016', 'cus_345678901'),
+('SUB00000004', 'CHU00000001', 'PER00000021', 'cus_456789012'),
+('SUB00000005', 'CHU00000001', 'PER00000025', 'cus_567890123');
 
 -- Subscription Funds (how subscription amounts are distributed)
 INSERT INTO subscriptionFunds (id, churchId, subscriptionId, fundId, amount) VALUES
@@ -115,11 +115,3 @@ INSERT INTO subscriptionFunds (id, churchId, subscriptionId, fundId, amount) VAL
 ('SFU00000008', 'CHU00000001', 'SUB00000004', 'FUN00000005', 40.00),  -- Carlos Garcia: Food Pantry
 ('SFU00000009', 'CHU00000001', 'SUB00000005', 'FUN00000001', 320.00), -- Richard Miller: General Fund
 ('SFU00000010', 'CHU00000001', 'SUB00000005', 'FUN00000006', 80.00);  -- Richard Miller: Benevolence Fund
-
--- Event Logs (sample of important giving events)
-INSERT INTO eventLogs (id, churchId, eventType, eventDate, customerId, donationId, subscriptionId, message) VALUES
-('EVT00000001', 'CHU00000001', 'Subscription Created', '2025-01-01 00:00:00', 'CUS00000001', NULL, 'SUB00000001', 'Monthly subscription created for John Smith'),
-('EVT00000002', 'CHU00000001', 'Subscription Created', '2025-01-01 00:00:00', 'CUS00000002', NULL, 'SUB00000002', 'Monthly subscription created for Robert Johnson'),
-('EVT00000003', 'CHU00000001', 'Donation Received', '2025-03-02 10:15:00', 'CUS00000001', 'DON00000001', NULL, 'Monthly donation received from John Smith'),
-('EVT00000004', 'CHU00000001', 'Donation Received', '2025-03-02 10:20:00', 'CUS00000002', 'DON00000002', NULL, 'Monthly donation received from Robert Johnson'),
-('EVT00000005', 'CHU00000001', 'Batch Closed', '2025-03-02 23:59:59', NULL, NULL, NULL, 'Weekly batch closed for March 2, 2025');
