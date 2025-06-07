@@ -13,6 +13,11 @@ jobs:
     name: Cleanup Previous Demo
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -25,11 +30,6 @@ jobs:
           |
           npm install -g serverless
           serverless remove --stage Demo --verbose
-
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: "true"
 
       - uses: actions/setup-node@v2
         with:
