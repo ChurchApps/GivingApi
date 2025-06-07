@@ -92,8 +92,4 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
       - name: Deploy API
-        run:
-          |
-          npm install # Ensure all dependencies, including devDependencies, are installed
-          npm install -g ts-node # Install ts-node globally if required
-          npm run deploy-demo
+        run: npm run deploy-demo
