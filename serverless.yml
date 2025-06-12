@@ -45,19 +45,21 @@ functions:
     vpc: ${self:custom.vpcSettings.current}
 
 package:
-  individually: true
   patterns:
+    - "dist/**"
+    - "lambda.js"
+    - "package.json"
+    - "!node_modules/**"
+    - "!layer/**"
+    - "!src/**"
+    - "!tools/**"
     - "!.git/**"
     - "!.gitignore"
     - "!README.md"
     - "!*.md"
     - "!package-lock.json"
     - "!tsconfig.json"
-    - "!src/**"
-    - "!tools/**"
     - "!Dockerfile"
-    - "!node_modules/**"
-    - "!layer/**"
     - "!eslint.config.js"
 
 plugins:
