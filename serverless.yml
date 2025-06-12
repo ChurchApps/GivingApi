@@ -1,9 +1,6 @@
 service: giving-api
 
 custom:
-  serverless-layers:
-    dependenciesPath: ./package.json
-    layersDeploymentBucket: "lcs-layers"
   env: ${lower(${opt:stage, self:provider.stage})}
   vpcSettings:
     prod:
@@ -11,11 +8,11 @@ custom:
         - sg-052314a1eec2f2567
       subnetIds:
         - subnet-01a6b61d749d10c46
-    current: ${ternary( ${self:custom.env}, prod, ${self:custom.vpcSettings.prod}, ~ )}
+    current: ${self:custom.vpcSettings.${self:custom.env}, self:custom.vpcSettings.prod}
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   memorySize: 1024
   timeout: 10
   region: us-east-2
@@ -24,14 +21,44 @@ provider:
   environment:
     APP_ENV: ${self:custom.env}
 
+layers:
+  dependencies:
+    path: layer
+    name: ${self:service}-dependencies-${self:custom.env}
+    description: "Dependencies layer for ${self:service}"
+    compatibleRuntimes:
+      - nodejs20.x
+
 functions:
   api:
+    name: giving-api-${self:custom.env}-api
     handler: lambda.universal
+    layers:
+      - { Ref: DependenciesLambdaLayer }
     events:
-      - http: ANY {proxy+}
-      - http: ANY /
+      - http:
+          path: /{proxy+}
+          method: ANY
+      - http:
+          path: /
+          method: ANY
     vpc: ${self:custom.vpcSettings.current}
 
+package:
+  individually: true
+  patterns:
+    - "!.git/**"
+    - "!.gitignore"
+    - "!README.md"
+    - "!*.md"
+    - "!package-lock.json"
+    - "!tsconfig.json"
+    - "!src/**"
+    - "!tools/**"
+    - "!Dockerfile"
+    - "!node_modules/**"
+    - "!layer/**"
+    - "!eslint.config.js"
+
 plugins:
-  - serverless-layers
   - serverless-plugin-utils

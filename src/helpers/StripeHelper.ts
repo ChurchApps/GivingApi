@@ -30,7 +30,7 @@ export class StripeHelper {
           unit_amount: Math.trunc(Math.round(amount * 100))
         }
       }],
-      proration_behavior: 'none',
+      proration_behavior: 'none'
     };
     // billing_cycle_anchor: (billing_cycle_anchor && billing_cycle_anchor > new Date().getTime()) ? billing_cycle_anchor / 1000 : "now",
     if (billing_cycle_anchor && billing_cycle_anchor > new Date().getTime()) subscriptionData.billing_cycle_anchor = billing_cycle_anchor / 1000;
@@ -64,7 +64,7 @@ export class StripeHelper {
 
   static deleteSubscription = async (secretKey: string, subscriptionId: string) => {
     const stripe = StripeHelper.getStripeObj(secretKey);
-    return await stripe.subscriptions.del(subscriptionId);
+    return await stripe.subscriptions.cancel(subscriptionId);
   }
 
   static getCustomerSubscriptions = async (secretKey: string, customerId: string) => {
@@ -149,7 +149,7 @@ export class StripeHelper {
         'invoice.paid',
         'charge.succeeded',
         'charge.failed'
-      ],
+      ]
     });
   }
 
@@ -200,6 +200,6 @@ export class StripeHelper {
   }
 
   private static getStripeObj = (secretKey: string) => {
-    return new Stripe(secretKey, { apiVersion: '2020-08-27' });
+    return new Stripe(secretKey, { apiVersion: '2025-05-28.basil' });
   }
 }

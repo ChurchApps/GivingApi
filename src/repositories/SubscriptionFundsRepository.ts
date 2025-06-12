@@ -19,21 +19,21 @@ export class SubscriptionFundsRepository {
     }
 
     private async update(subscriptionFund: SubscriptionFund) {
-        const sql = "UPDATE subscriptionFund SET churchId=?, subscriptionId=?, fundId=?, amount=? WHERE id=? and churchId=?";
-        const params = [subscriptionFund.churchId, subscriptionFund.subscriptionId, subscriptionFund.fundId, subscriptionFund.amount];
-        await DB.query(sql, params)
+        const sql = "UPDATE subscriptionFunds SET churchId=?, subscriptionId=?, fundId=?, amount=? WHERE id=? and churchId=?";
+        const params = [subscriptionFund.churchId, subscriptionFund.subscriptionId, subscriptionFund.fundId, subscriptionFund.amount, subscriptionFund.id, subscriptionFund.churchId];
+        await DB.query(sql, params);
         return subscriptionFund;
     }
 
-    public async delete(id: string, churchId: string) {
-        DB.query("DELETE FROM subscriptionFunds WHERE id=? AND churchId=?;", [id, churchId]);
+    public async delete(churchId: string, id: string) {
+        return DB.query("DELETE FROM subscriptionFunds WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
     public async deleteBySubscriptionId(churchId: string, subscriptionId: string) {
-        DB.query("DELETE FROM subscriptionFunds WHERE subscriptionId=? AND churchId=?;", [subscriptionId, churchId]);
+        return DB.query("DELETE FROM subscriptionFunds WHERE subscriptionId=? AND churchId=?;", [subscriptionId, churchId]);
     }
 
-    public async load(id: string, churchId: string) {
+    public async load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM subscriptionFunds WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
@@ -52,11 +52,11 @@ export class SubscriptionFundsRepository {
             + " WHERE subscriptionFunds.churchId=? AND subscriptionFunds.subscriptionId=?";
         const subscriptionFund = await DB.query(sql, [churchId, subscriptionId]);
         if (subscriptionFund && subscriptionFund[0].removed === false) {
-            const { removed, ...sf } = subscriptionFund[0];
+            const { removed: _removed, ...sf } = subscriptionFund[0];
             result = [sf];
         } else {
             const generalFund = await Repositories.getCurrent().fund.getOrCreateGeneral(churchId);
-            const { removed, ...sf } = subscriptionFund[0];
+            const { removed: _removed, ...sf } = subscriptionFund[0];
             sf.fundId = generalFund.id;
             sf.name = generalFund.name;
             result = [sf];

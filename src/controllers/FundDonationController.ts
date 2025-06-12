@@ -70,7 +70,7 @@ export class FundDonationController extends GivingBaseController {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
             else {
-                await this.repositories.fundDonation.delete(au.churchId, au.churchId);
+                await this.repositories.fundDonation.delete(au.churchId, id);
                 return this.json({});
             }
         });

@@ -21,7 +21,18 @@ export class CustomerController extends GivingBaseController {
     public async getSubscriptions(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             const secretKey = await this.loadPrivateKey(au.churchId);
-            const permission = secretKey && (au.checkAccess(Permissions.donations.viewSummary) || (await this.repositories.customer.convertToModel(au.churchId, await this.repositories.customer.load(au.churchId, id)).personId === au.personId));
+            let permission = false;
+            if (secretKey) {
+                if (au.checkAccess(Permissions.donations.viewSummary)) {
+                    permission = true;
+                } else {
+                    const customerData = await this.repositories.customer.load(au.churchId, id);
+                    if (customerData) {
+                        const customer = this.repositories.customer.convertToModel(au.churchId, customerData);
+                        permission = customer.personId === au.personId;
+                    }
+                }
+            }
             if (!permission) return this.json({}, 401);
             else return await StripeHelper.getCustomerSubscriptions(secretKey, id);
         });

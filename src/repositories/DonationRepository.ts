@@ -129,7 +129,7 @@ export class DonationRepository {
             const funds: any[] = [];
             const personDonations = ArrayHelper.getAll(data, "personId", id); // combine all the donations for a person
             personDonations.forEach((pd) => {
-                totalAmount += pd.fundAmount //pd.donationAmount; // get total donated amount for a person
+                totalAmount += pd.fundAmount // pd.donationAmount; // get total donated amount for a person
             });
             const fundIds = ArrayHelper.getIds(personDonations, "fundId");
             fundIds.forEach((fuId) => {

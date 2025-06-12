@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { GivingBaseController } from "./GivingBaseController"
 import { StripeHelper } from "../helpers/StripeHelper";
 import { EncryptionHelper, EmailHelper, CurrencyHelper } from "@churchapps/apihelper";
-import { Donation, FundDonation, DonationBatch, PaymentDetails, EventLog, Subscription, SubscriptionFund } from "../models";
+import { Donation, FundDonation, DonationBatch, PaymentDetails, Subscription, SubscriptionFund } from "../models";
 import { Environment } from "../helpers/Environment";
 import Axios from "axios"
 import dayjs from "dayjs";
@@ -25,12 +25,17 @@ export class DonateController extends GivingBaseController {
   @httpPost("/webhook/:provider")
   public async webhook(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapperAnon(req, res, async () => {
-      const churchId = req.query.churchId.toString();
-      const gateways = await this.repositories.gateway.loadAll(churchId);
-      const secretKey = EncryptionHelper.decrypt(gateways[0].privateKey);
-      if (!gateways.length || secretKey === "") return this.json({}, 401);
+      const churchId = req.query.churchId?.toString();
+      if (!churchId) return this.json({ error: "Missing churchId parameter" }, 400);
 
-      const sig = req.headers["stripe-signature"].toString();
+      const gateways = await this.repositories.gateway.loadAll(churchId);
+      if (!gateways.length) return this.json({ error: "No gateway configured" }, 401);
+
+      const secretKey = EncryptionHelper.decrypt(gateways[0].privateKey);
+      if (secretKey === "") return this.json({ error: "Invalid gateway configuration" }, 401);
+
+      const sig = req.headers["stripe-signature"]?.toString();
+      if (!sig) return this.json({ error: "Missing stripe signature" }, 400);
       const webhookKey = EncryptionHelper.decrypt(gateways[0].webhookKey);
       const stripeEvent: Stripe.Event = await StripeHelper.verifySignature(secretKey, req, sig, webhookKey);
       const eventData = stripeEvent.data.object as any; // https://github.com/stripe/stripe-node/issues/758

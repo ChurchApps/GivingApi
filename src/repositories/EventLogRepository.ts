@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { DB, UniqueIdHelper } from "@churchapps/apihelper";
+import { DB } from "@churchapps/apihelper";
 import { EventLog } from "../models";
 
 @injectable()
@@ -25,7 +25,7 @@ export class EventLogRepository {
     }
 
     public async delete(churchId: string, id: string) {
-        DB.query("DELETE FROM eventLogs WHERE id=? AND churchId=?;", [id, churchId]);
+        return DB.query("DELETE FROM eventLogs WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
     public async load(churchId: string, id: string) {

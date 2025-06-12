@@ -30,9 +30,9 @@ export class DonationController extends GivingBaseController {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
             else {
-                const startDate = (req.query.startDate === undefined) ? new Date(2000, 1, 1) : new Date(req.query.startDate.toString());
-                const endDate = (req.query.endDate === undefined) ? new Date() : new Date(req.query.endDate.toString());
-                const type = req.query.type === undefined ? "" : req.query.type;
+                const startDate = req.query.startDate ? new Date(req.query.startDate.toString()) : new Date(2000, 1, 1);
+                const endDate = req.query.endDate ? new Date(req.query.endDate.toString()) : new Date();
+                const type = req.query.type?.toString() || "";
                 if (type === "person") {
                     const result = await this.repositories.donation.loadPersonBasedSummary(au.churchId, startDate, endDate);
                     return this.repositories.donation.convertAllToPersonSummary(au.churchId, result);
