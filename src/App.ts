@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-import bodyParser from "body-parser";
 import "reflect-metadata";
 import { Container } from "inversify";
 import { InversifyExpressServer } from "inversify-express-utils";
@@ -34,6 +33,11 @@ export const init = async () => {
         // Handle body parsing from @codegenie/serverless-express
         expApp.use((req, res, next) => {
             const contentType = req.headers['content-type'] || '';
+            
+            // Skip parsing for webhook endpoint - leave raw body for Stripe signature verification
+            if (req.path.startsWith('/donate/webhook')) {
+                return next();
+            }
             
             // Handle Buffer instances (most common case with serverless-express)
             if (Buffer.isBuffer(req.body)) {
@@ -76,11 +80,6 @@ export const init = async () => {
             
             next();
         });
-
-        // Special handling for Stripe webhooks - they need raw body
-        expApp.use("/donate/webhook", bodyParser.raw({type: "*/*"}));
-        expApp.use(bodyParser.urlencoded({ extended: true }));
-        expApp.use(bodyParser.json({ limit: "50mb" }));
     };
 
     const server = app.setConfig(configFunction).build();
