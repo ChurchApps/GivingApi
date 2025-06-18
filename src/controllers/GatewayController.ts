@@ -16,6 +16,15 @@ export class GatewayController extends GivingBaseController {
     });
   }
 
+  @httpGet("/configured/:churchId")
+  public async isConfigured(@requestParam("churchId") churchId: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    return this.actionWrapperAnon(req, res, async () => {
+      const gateways = await this.repositories.gateway.loadAll(churchId);
+      const hasConfiguredGateway = gateways.length > 0 && gateways.some(g => g.privateKey && g.privateKey.trim() !== '');
+      return { configured: hasConfiguredGateway };
+    });
+  }
+
   @httpGet("/:id")
   public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
