@@ -20,7 +20,7 @@ export class GatewayController extends GivingBaseController {
   public async isConfigured(@requestParam("churchId") churchId: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapperAnon(req, res, async () => {
       const gateways = await this.repositories.gateway.loadAll(churchId);
-      const hasConfiguredGateway = gateways.length > 0 && gateways.some(g => g.privateKey && g.privateKey.trim() !== '');
+      const hasConfiguredGateway = gateways.length > 0 && gateways.some((g: any) => g.privateKey && g.privateKey.trim() !== '');
       return { configured: hasConfiguredGateway };
     });
   }

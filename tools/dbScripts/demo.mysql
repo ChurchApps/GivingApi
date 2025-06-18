@@ -29,7 +29,7 @@ INSERT INTO funds (id, churchId, name, taxDeductible, removed, productId) VALUES
 
 -- Gateways
 INSERT INTO gateways (id, churchId, provider, publicKey, privateKey, webhookKey, productId, payFees) VALUES
-('GAT00000001', 'CHU00000001', 'STRIPE', 'pk_test_51NxYz2KJh8LmNpQrStUvWxYz', 'sk_test_51NxYz2KJh8LmNpQrStUvWxYz', NULL, NULL, 0);
+('GAT00000001', 'CHU00000001', 'Stripe', 'pk_test_IsC6UPM4P5EZ6KAEorHwEMvU00M6ioef1d', 'JV91AdXjY7LHbYP1bDK1ww==|6B1IlitDklk4++SozOhCv/+4l3smdeSqaERbeud6mFaTlbyaRPxaDqTi', 'zLF076PlrqwoHNzZ9OjwnA==|hssU8Hi2e7nhZiUQFZxRtVKuBA7mfRO7vZCCGJyeJlP/dM5YX/M=', 'prod_LrPszPDWKmksbK', 0);
 
 -- Customers (mapped to people from membership demo)
 INSERT INTO customers (id, churchId, personId) VALUES
