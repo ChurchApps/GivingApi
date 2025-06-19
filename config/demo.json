@@ -1,0 +1,10 @@
+{
+  "appEnv": "demo",
+  "appName": "GivingApiAccessApi",
+  "contentRoot": "https://content.demo.churchapps.org",
+  "fileStore": "S3",
+  "mailSystem": "SES",
+  "s3Bucket": "demo-churchapps-content",
+  "membershipApi": "https://membershipapi.demo.churchapps.org",
+  "supportEmail": "support@churchapps.org"
+}

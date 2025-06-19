@@ -10,6 +10,7 @@ export class Environment extends EnvironmentBase {
 
   static async init(environment: string) {
     let file = "dev.json";
+    if (environment === "demo") file = "demo.json";
     if (environment === "staging") file = "staging.json";
     if (environment === "prod") file = "prod.json";
 
@@ -22,7 +23,7 @@ export class Environment extends EnvironmentBase {
     this.membershipApi = data.membershipApi;
     this.supportEmail = data.supportEmail;
 
-    Environment.googleRecaptchaSecretKey = process.env.GOOGLE_RECAPTCHA_SECRET_KEY || await AwsHelper.readParameter(`/${environment}/recaptcha-secret-key`) ;
+    Environment.googleRecaptchaSecretKey = process.env.GOOGLE_RECAPTCHA_SECRET_KEY || await AwsHelper.readParameter(`/${environment}/recaptcha-secret-key`);
   }
 
 }
