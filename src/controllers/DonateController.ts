@@ -270,8 +270,7 @@ export class DonateController extends GivingBaseController {
         }
 
         return { response: "" }
-      } catch (error) {
-        console.error(error)
+      } catch {
         return this.json({ message: "Error verifying reCAPTCHA" }, 400);
       }
     })

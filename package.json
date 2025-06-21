@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "clean": "rimraf dist/*",
+    "clean": "rimraf dist",
     "copy-assets": "mkdir -p dist/templates",
     "exec-deploy-staging": "serverless deploy --stage Staging",
     "deploy-staging": "npm-run-all build copy-assets build-layer exec-deploy-staging",

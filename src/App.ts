@@ -21,7 +21,7 @@ export const init = async () => {
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
         }));
-        
+
         // Handle preflight requests early
         expApp.options('*', (req, res) => {
             res.header('Access-Control-Allow-Origin', '*');
@@ -29,16 +29,16 @@ export const init = async () => {
             res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
             res.sendStatus(200);
         });
-        
+
         // Handle body parsing from @codegenie/serverless-express
         expApp.use((req, res, next) => {
             const contentType = req.headers['content-type'] || '';
-            
+
             // Skip parsing for webhook endpoint - leave raw body for Stripe signature verification
             if (req.path.startsWith('/donate/webhook')) {
                 return next();
             }
-            
+
             // Handle Buffer instances (most common case with serverless-express)
             if (Buffer.isBuffer(req.body)) {
                 try {
@@ -48,8 +48,7 @@ export const init = async () => {
                     } else {
                         req.body = bodyString;
                     }
-                } catch (e) {
-                    console.error('Failed to parse Buffer body:', e.message);
+                } catch (_e) {
                     req.body = {};
                 }
             }
@@ -62,8 +61,7 @@ export const init = async () => {
                     } else {
                         req.body = bodyString;
                     }
-                } catch (e) {
-                    console.error('Failed to parse Buffer-like body:', e.message);
+                } catch (_e) {
                     req.body = {};
                 }
             }
@@ -73,11 +71,11 @@ export const init = async () => {
                     if (contentType.includes('application/json')) {
                         req.body = JSON.parse(req.body);
                     }
-                } catch (e) {
-                    console.error('Failed to parse string body as JSON:', e.message);
+                } catch (_e) {
+                    // Failed to parse string body as JSON - continue with original body
                 }
             }
-            
+
             next();
         });
     };

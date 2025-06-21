@@ -25,10 +25,14 @@ module.exports = [
       '@typescript-eslint': tsPlugin
     },
     rules: {
-      'no-console': 'off',
+      'no-console': 'error',
       'no-undef': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_|^req$|^res$|^au$|^ex$|^e$|^bind$',
+        varsIgnorePattern: '^_|^start$|^result$|^app$',
+        caughtErrorsIgnorePattern: '^_'
+      }],
       'no-unused-vars': 'off',
       'prefer-const': 'error',
       'no-trailing-spaces': 'error',
