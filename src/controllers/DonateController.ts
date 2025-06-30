@@ -43,7 +43,7 @@ export class DonateController extends GivingBaseController {
       if (stripeEvent.type === 'charge.succeeded' && subscriptionEvent) return this.json({}, 200); // Ignore charge.succeeded from subscription events in place of invoice.paid for access to subscription id
       const existingEvent = await this.repositories.eventLog.load(churchId, stripeEvent.id);
       if (!existingEvent) await StripeHelper.logEvent(churchId, stripeEvent, eventData);
-      if (stripeEvent.type === 'charge.succeeded' || stripeEvent.type === 'invoice.paid') await StripeHelper.logDonation(secretKey, churchId, eventData);
+      if (!existingEvent && (stripeEvent.type === 'charge.succeeded' || stripeEvent.type === 'invoice.paid')) await StripeHelper.logDonation(secretKey, churchId, eventData);
     });
   }
 
