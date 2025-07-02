@@ -23,7 +23,8 @@ export class Environment extends EnvironmentBase {
     this.membershipApi = data.membershipApi;
     this.supportEmail = data.supportEmail;
 
-    Environment.googleRecaptchaSecretKey = process.env.GOOGLE_RECAPTCHA_SECRET_KEY || await AwsHelper.readParameter(`/${environment}/recaptcha-secret-key`);
+    Environment.googleRecaptchaSecretKey =
+      process.env.GOOGLE_RECAPTCHA_SECRET_KEY ||
+      (await AwsHelper.readParameter(`/${environment}/recaptcha-secret-key`));
   }
-
 }

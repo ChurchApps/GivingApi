@@ -1,15 +1,18 @@
 import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } from "inversify-express-utils";
 import express from "express";
-import { GivingBaseController } from "./GivingBaseController"
-import { StripeHelper } from "../helpers"
+import { GivingBaseController } from "./GivingBaseController";
+import { StripeHelper } from "../helpers";
 import { EncryptionHelper } from "@churchapps/apihelper";
-import { Permissions } from "../helpers/Permissions"
+import { Permissions } from "../helpers/Permissions";
 
 @controller("/paymentmethods")
 export class PaymentMethodController extends GivingBaseController {
-
   @httpGet("/personid/:id")
-  public async getPersonPaymentMethods(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async getPersonPaymentMethods(
+    @requestParam("id") id: string,
+    req: express.Request<{}, {}, null>,
+    res: express.Response
+  ): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
       const secretKey = await this.loadPrivateKey(au.churchId);
       const permission = secretKey && (au.checkAccess(Permissions.donations.view) || id === au.personId);
@@ -25,7 +28,7 @@ export class PaymentMethodController extends GivingBaseController {
   public async addCard(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
       const { id, personId, customerId, email, name, churchId } = req.body;
-      const cId = au?.churchId || churchId
+      const cId = au?.churchId || churchId;
       const secretKey = await this.loadPrivateKey(cId);
 
       // Require permission to edit cards, but not add so we can accept logged out donations
@@ -40,9 +43,10 @@ export class PaymentMethodController extends GivingBaseController {
         }
         try {
           const pm = await StripeHelper.attachPaymentMethod(secretKey, id, { customer });
-          return { paymentMethod: pm, customerId: customer }
+          return { paymentMethod: pm, customerId: customer };
+        } catch (e) {
+          return e;
         }
-        catch (e) { return e; }
       }
     });
   }
@@ -54,8 +58,11 @@ export class PaymentMethodController extends GivingBaseController {
       const secretKey = await this.loadPrivateKey(au.churchId);
       const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
       if (!permission) return this.json({}, 401);
-      try { return await StripeHelper.updateCard(secretKey, paymentMethodId, cardData); }
-      catch (e) { return e; }
+      try {
+        return await StripeHelper.updateCard(secretKey, paymentMethodId, cardData);
+      } catch (e) {
+        return e;
+      }
     });
   }
 
@@ -72,8 +79,11 @@ export class PaymentMethodController extends GivingBaseController {
           customer = await StripeHelper.createCustomer(secretKey, email, name);
           this.repositories.customer.save({ id: customer, churchId: au.churchId, personId });
         }
-        try { return await StripeHelper.createBankAccount(secretKey, customer, { source: id }) }
-        catch (e) { return e; }
+        try {
+          return await StripeHelper.createBankAccount(secretKey, customer, { source: id });
+        } catch (e) {
+          return e;
+        }
       }
     });
   }
@@ -85,8 +95,11 @@ export class PaymentMethodController extends GivingBaseController {
       const { paymentMethodId, personId, bankData, customerId } = req.body;
       const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || personId === au.personId);
       if (!permission) return this.json({}, 401);
-      try { return await StripeHelper.updateBank(secretKey, paymentMethodId, bankData, customerId); }
-      catch (e) { return e; }
+      try {
+        return await StripeHelper.updateBank(secretKey, paymentMethodId, bankData, customerId);
+      } catch (e) {
+        return e;
+      }
     });
   }
 
@@ -95,25 +108,45 @@ export class PaymentMethodController extends GivingBaseController {
     return this.actionWrapper(req, res, async (au) => {
       const secretKey = await this.loadPrivateKey(au.churchId);
       const { paymentMethodId, customerId, amountData } = req.body;
-      const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || (await this.repositories.customer.convertToModel(au.churchId, await this.repositories.customer.load(au.churchId, customerId)).personId === au.personId));
+      const permission =
+        secretKey &&
+        (au.checkAccess(Permissions.donations.edit) ||
+          (await this.repositories.customer.convertToModel(
+            au.churchId,
+            await this.repositories.customer.load(au.churchId, customerId)
+          ).personId) === au.personId);
       if (!permission) return this.json({}, 401);
       else {
-        try { return await StripeHelper.verifyBank(secretKey, paymentMethodId, amountData, customerId); }
-        catch (e) { return e; }
+        try {
+          return await StripeHelper.verifyBank(secretKey, paymentMethodId, amountData, customerId);
+        } catch (e) {
+          return e;
+        }
       }
     });
   }
 
   @httpDelete("/:id/:customerid")
-  public async delete(@requestParam("id") id: string, @requestParam("customerid") customerId: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async delete(
+    @requestParam("id") id: string,
+    @requestParam("customerid") customerId: string,
+    req: express.Request<{}, {}, null>,
+    res: express.Response
+  ): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
       const secretKey = await this.loadPrivateKey(au.churchId);
-      const permission = secretKey && (au.checkAccess(Permissions.donations.edit) || (await this.repositories.customer.convertToModel(au.churchId, await this.repositories.customer.load(au.churchId, customerId)).personId === au.personId));
+      const permission =
+        secretKey &&
+        (au.checkAccess(Permissions.donations.edit) ||
+          (await this.repositories.customer.convertToModel(
+            au.churchId,
+            await this.repositories.customer.load(au.churchId, customerId)
+          ).personId) === au.personId);
       if (!permission) return this.json({}, 401);
       else {
         const paymentType = id.substring(0, 2);
-        if (paymentType === 'pm') await StripeHelper.detachPaymentMethod(secretKey, id);
-        if (paymentType === 'ba') await StripeHelper.deleteBankAccount(secretKey, customerId, id);
+        if (paymentType === "pm") await StripeHelper.detachPaymentMethod(secretKey, id);
+        if (paymentType === "ba") await StripeHelper.deleteBankAccount(secretKey, customerId, id);
         return this.json({});
       }
     });
@@ -121,6 +154,6 @@ export class PaymentMethodController extends GivingBaseController {
 
   private loadPrivateKey = async (churchId: string) => {
     const gateways = await this.repositories.gateway.loadAll(churchId);
-    return (gateways.length === 0) ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
-  }
+    return gateways.length === 0 ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
+  };
 }

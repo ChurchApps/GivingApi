@@ -1,65 +1,105 @@
-import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete, httpPatch } from "inversify-express-utils";
+import {
+  controller,
+  httpPost,
+  httpGet,
+  interfaces,
+  requestParam,
+  httpDelete,
+  httpPatch
+} from "inversify-express-utils";
 import express from "express";
-import { GivingBaseController } from "./GivingBaseController"
-import { Gateway } from "../models"
-import { StripeHelper } from "../helpers"
+import { GivingBaseController } from "./GivingBaseController";
+import { Gateway } from "../models";
+import { StripeHelper } from "../helpers";
 import { EncryptionHelper } from "@churchapps/apihelper";
-import { Permissions } from "../helpers/Permissions"
+import { Permissions } from "../helpers/Permissions";
 
 @controller("/gateways")
 export class GatewayController extends GivingBaseController {
-
   @httpGet("/churchId/:churchId")
-  public async getForChurch(@requestParam("churchId") churchId: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async getForChurch(
+    @requestParam("churchId") churchId: string,
+    req: express.Request<{}, {}, null>,
+    res: express.Response
+  ): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapperAnon(req, res, async () => {
       return this.repositories.gateway.convertAllToModel(churchId, await this.repositories.gateway.loadAll(churchId));
     });
   }
 
   @httpGet("/configured/:churchId")
-  public async isConfigured(@requestParam("churchId") churchId: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async isConfigured(
+    @requestParam("churchId") churchId: string,
+    req: express.Request<{}, {}, null>,
+    res: express.Response
+  ): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapperAnon(req, res, async () => {
       const gateways = await this.repositories.gateway.loadAll(churchId);
-      const hasConfiguredGateway = gateways.length > 0 && gateways.some((g: any) => g.privateKey && g.privateKey.trim() !== '');
+      const hasConfiguredGateway =
+        gateways.length > 0 && gateways.some((g: any) => g.privateKey && g.privateKey.trim() !== "");
       return { configured: hasConfiguredGateway };
     });
   }
 
   @httpGet("/:id")
-  public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async get(
+    @requestParam("id") id: string,
+    req: express.Request<{}, {}, null>,
+    res: express.Response
+  ): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
-      else return this.repositories.gateway.convertToModel(au.churchId, await this.repositories.gateway.load(au.churchId, id));
+      else
+        return this.repositories.gateway.convertToModel(
+          au.churchId,
+          await this.repositories.gateway.load(au.churchId, id)
+        );
     });
   }
 
   @httpGet("/")
-  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async getAll(
+    req: express.Request<{}, {}, null>,
+    res: express.Response
+  ): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
-      return this.repositories.gateway.convertAllToModel(au.churchId, await this.repositories.gateway.loadAll(au.churchId));
+      return this.repositories.gateway.convertAllToModel(
+        au.churchId,
+        await this.repositories.gateway.loadAll(au.churchId)
+      );
     });
   }
 
   @httpPost("/")
-  public async save(req: express.Request<{}, {}, Gateway[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async save(
+    req: express.Request<{}, {}, Gateway[]>,
+    res: express.Response
+  ): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
       else {
         const promises: Promise<Gateway>[] = [];
-        await Promise.all(req.body.map(async gateway => {
-          if (gateway.provider === 'Stripe') {
-            if (req.hostname !== 'localhost') {
-              await StripeHelper.deleteWebhooksByChurchId(gateway.privateKey, au.churchId);
-              const webHookUrl = req.get('x-forwarded-proto') + '://' + req.hostname + '/donate/webhook/stripe?churchId=' + au.churchId;
-              const webhook = await StripeHelper.createWebhookEndpoint(gateway.privateKey, webHookUrl);
-              gateway.webhookKey = EncryptionHelper.encrypt(webhook.secret);
+        await Promise.all(
+          req.body.map(async (gateway) => {
+            if (gateway.provider === "Stripe") {
+              if (req.hostname !== "localhost") {
+                await StripeHelper.deleteWebhooksByChurchId(gateway.privateKey, au.churchId);
+                const webHookUrl =
+                  req.get("x-forwarded-proto") +
+                  "://" +
+                  req.hostname +
+                  "/donate/webhook/stripe?churchId=" +
+                  au.churchId;
+                const webhook = await StripeHelper.createWebhookEndpoint(gateway.privateKey, webHookUrl);
+                gateway.webhookKey = EncryptionHelper.encrypt(webhook.secret);
+              }
+              gateway.productId = await StripeHelper.createProduct(gateway.privateKey, au.churchId);
             }
-            gateway.productId = await StripeHelper.createProduct(gateway.privateKey, au.churchId);
-          }
-          gateway.churchId = au.churchId;
-          gateway.privateKey = EncryptionHelper.encrypt(gateway.privateKey);
-          await promises.push(this.repositories.gateway.save(gateway));
-        }));
+            gateway.churchId = au.churchId;
+            gateway.privateKey = EncryptionHelper.encrypt(gateway.privateKey);
+            await promises.push(this.repositories.gateway.save(gateway));
+          })
+        );
         const result = await Promise.all(promises);
         return this.repositories.gateway.convertAllToModel(au.churchId, result);
       }
@@ -67,28 +107,36 @@ export class GatewayController extends GivingBaseController {
   }
 
   @httpPatch("/:id")
-  public async update(@requestParam("id") id: string, req: express.Request<{}, {}, any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async update(
+    @requestParam("id") id: string,
+    req: express.Request<{}, {}, any>,
+    res: express.Response
+  ): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
       else {
         const existing = await this.repositories.gateway.load(au.churchId, id);
         if (!existing) {
-          return this.json({ message: 'No gateway found for this church' }, 400);
+          return this.json({ message: "No gateway found for this church" }, 400);
         } else {
-          if (req.body.id) delete req.body.id
+          if (req.body.id) delete req.body.id;
           const updatedGateway: Gateway = {
             ...existing,
             ...req.body
-          }
+          };
           await this.repositories.gateway.save(updatedGateway);
         }
         return existing;
       }
-    })
+    });
   }
 
   @httpDelete("/:id")
-  public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async delete(
+    @requestParam("id") id: string,
+    req: express.Request<{}, {}, null>,
+    res: express.Response
+  ): Promise<interfaces.IHttpActionResult> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
       else {
@@ -102,5 +150,4 @@ export class GatewayController extends GivingBaseController {
       }
     });
   }
-
 }
