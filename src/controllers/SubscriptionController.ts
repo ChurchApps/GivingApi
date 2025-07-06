@@ -12,9 +12,9 @@ export class SubscriptionController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json(null, 401);
       else
         return this.repositories.customer.convertToModel(
           au.churchId,
@@ -24,22 +24,19 @@ export class SubscriptionController extends GivingBaseController {
   }
 
   @httpGet("/")
-  public async getAll(
-    req: express.Request<{}, {}, null>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json(null, 401);
       else
         return this.repositories.customer.convertAllToModel(
           au.churchId,
-          await this.repositories.customer.loadAll(au.churchId)
+          (await this.repositories.customer.loadAll(au.churchId)) as any[]
         );
     });
   }
 
   @httpPost("/")
-  public async save(req: express.Request<{}, {}, any[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async save(req: express.Request<{}, {}, any[]>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const secretKey = await this.loadPrivateKey(au.churchId);
       let permission = au.checkAccess(Permissions.donations.edit);
@@ -47,7 +44,7 @@ export class SubscriptionController extends GivingBaseController {
       req.body.forEach(async (subscription) => {
         permission =
           permission ||
-          (await this.repositories.subscription.load(au.churchId, subscription.id)).personId === au.personId;
+          ((await this.repositories.subscription.load(au.churchId, subscription.id)) as any).personId === au.personId;
         if (permission) promises.push(StripeHelper.updateSubscription(secretKey, subscription));
       });
       return await Promise.all(promises);
@@ -59,14 +56,14 @@ export class SubscriptionController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const secretKey = await this.loadPrivateKey(au.churchId);
       const permission =
         secretKey &&
         (au.checkAccess(Permissions.donations.edit) ||
-          (await this.repositories.subscription.load(au.churchId, id)).personId === au.personId);
-      if (!permission) return this.json({}, 401);
+          ((await this.repositories.subscription.load(au.churchId, id)) as any).personId === au.personId);
+      if (!permission) return this.json(null, 401);
       else {
         const promises: Promise<any>[] = [];
         promises.push(StripeHelper.deleteSubscription(secretKey, id));
@@ -78,6 +75,6 @@ export class SubscriptionController extends GivingBaseController {
 
   private loadPrivateKey = async (churchId: string) => {
     const gateways = await this.repositories.gateway.loadAll(churchId);
-    return gateways.length === 0 ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
+    return (gateways as any[]).length === 0 ? "" : EncryptionHelper.decrypt((gateways as any[])[0].privateKey);
   };
 }

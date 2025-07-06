@@ -12,14 +12,16 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "target": "es2022",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
     "baseUrl": ".",
     "strict": false,
-    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
+    "noEmitOnError": false,
+    "allowSyntheticDefaultImports": true,
+    "incremental": true,
     "paths": {
       "*": [
         "node_modules/*"

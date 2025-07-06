@@ -21,9 +21,12 @@ export class GatewayController extends GivingBaseController {
     @requestParam("churchId") churchId: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapperAnon(req, res, async () => {
-      return this.repositories.gateway.convertAllToModel(churchId, await this.repositories.gateway.loadAll(churchId));
+      return this.repositories.gateway.convertAllToModel(
+        churchId,
+        (await this.repositories.gateway.loadAll(churchId)) as any[]
+      );
     });
   }
 
@@ -32,9 +35,9 @@ export class GatewayController extends GivingBaseController {
     @requestParam("churchId") churchId: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapperAnon(req, res, async () => {
-      const gateways = await this.repositories.gateway.loadAll(churchId);
+      const gateways = (await this.repositories.gateway.loadAll(churchId)) as any[];
       const hasConfiguredGateway =
         gateways.length > 0 && gateways.some((g: any) => g.privateKey && g.privateKey.trim() !== "");
       return { configured: hasConfiguredGateway };
@@ -46,9 +49,9 @@ export class GatewayController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.settings.edit)) return this.json(null, 401);
       else
         return this.repositories.gateway.convertToModel(
           au.churchId,
@@ -58,25 +61,19 @@ export class GatewayController extends GivingBaseController {
   }
 
   @httpGet("/")
-  public async getAll(
-    req: express.Request<{}, {}, null>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       return this.repositories.gateway.convertAllToModel(
         au.churchId,
-        await this.repositories.gateway.loadAll(au.churchId)
+        (await this.repositories.gateway.loadAll(au.churchId)) as any[]
       );
     });
   }
 
   @httpPost("/")
-  public async save(
-    req: express.Request<{}, {}, Gateway[]>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async save(req: express.Request<{}, {}, Gateway[]>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.settings.edit)) return this.json(null, 401);
       else {
         const promises: Promise<Gateway>[] = [];
         await Promise.all(
@@ -97,11 +94,11 @@ export class GatewayController extends GivingBaseController {
             }
             gateway.churchId = au.churchId;
             gateway.privateKey = EncryptionHelper.encrypt(gateway.privateKey);
-            await promises.push(this.repositories.gateway.save(gateway));
+            promises.push(this.repositories.gateway.save(gateway));
           })
         );
         const result = await Promise.all(promises);
-        return this.repositories.gateway.convertAllToModel(au.churchId, result);
+        return this.repositories.gateway.convertAllToModel(au.churchId, result as any[]);
       }
     });
   }
@@ -111,9 +108,9 @@ export class GatewayController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, any>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.settings.edit)) return this.json(null, 401);
       else {
         const existing = await this.repositories.gateway.load(au.churchId, id);
         if (!existing) {
@@ -121,7 +118,7 @@ export class GatewayController extends GivingBaseController {
         } else {
           if (req.body.id) delete req.body.id;
           const updatedGateway: Gateway = {
-            ...existing,
+            ...(existing as any),
             ...req.body
           };
           await this.repositories.gateway.save(updatedGateway);
@@ -136,11 +133,11 @@ export class GatewayController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.settings.edit)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.settings.edit)) return this.json(null, 401);
       else {
-        const gateway = await this.repositories.gateway.load(au.churchId, id);
+        const gateway = (await this.repositories.gateway.load(au.churchId, id)) as any;
         if (gateway.provider === "Stripe") {
           const privateKey = EncryptionHelper.decrypt(gateway.privateKey);
           await StripeHelper.deleteWebhooksByChurchId(privateKey, au.churchId);

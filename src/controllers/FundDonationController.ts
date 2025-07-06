@@ -7,7 +7,7 @@ import { Permissions } from "../helpers/Permissions";
 @controller("/funddonations")
 export class FundDonationController extends GivingBaseController {
   @httpGet("/my")
-  public async getMy(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async getMy(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       return this.repositories.fundDonation.loadByPersonId(au.churchId, au.personId);
     });
@@ -18,7 +18,7 @@ export class FundDonationController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
       else
@@ -30,10 +30,7 @@ export class FundDonationController extends GivingBaseController {
   }
 
   @httpGet("/")
-  public async getAll(
-    req: express.Request<{}, {}, null>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
       else {
@@ -67,16 +64,13 @@ export class FundDonationController extends GivingBaseController {
             result = await this.repositories.fundDonation.loadAll(au.churchId);
           }
         }
-        return this.repositories.fundDonation.convertAllToModel(au.churchId, result);
+        return this.repositories.fundDonation.convertAllToModel(au.churchId, result as any[]);
       }
     });
   }
 
   @httpPost("/")
-  public async save(
-    req: express.Request<{}, {}, FundDonation[]>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async save(req: express.Request<{}, {}, FundDonation[]>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
       else {
@@ -96,7 +90,7 @@ export class FundDonationController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
       else {

@@ -12,7 +12,7 @@ export class PaymentMethodController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const secretKey = await this.loadPrivateKey(au.churchId);
       const permission = secretKey && (au.checkAccess(Permissions.donations.view) || id === au.personId);
@@ -25,7 +25,7 @@ export class PaymentMethodController extends GivingBaseController {
   }
 
   @httpPost("/addcard")
-  public async addCard(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async addCard(req: express.Request<any>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const { id, personId, customerId, email, name, churchId } = req.body;
       const cId = au?.churchId || churchId;
@@ -67,7 +67,7 @@ export class PaymentMethodController extends GivingBaseController {
   }
 
   @httpPost("/addbankaccount")
-  public async addBankAccount(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async addBankAccount(req: express.Request<any>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const { id, personId, customerId, email, name } = req.body;
       const secretKey = await this.loadPrivateKey(au.churchId);
@@ -132,7 +132,7 @@ export class PaymentMethodController extends GivingBaseController {
     @requestParam("customerid") customerId: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const secretKey = await this.loadPrivateKey(au.churchId);
       const permission =
@@ -154,6 +154,6 @@ export class PaymentMethodController extends GivingBaseController {
 
   private loadPrivateKey = async (churchId: string) => {
     const gateways = await this.repositories.gateway.loadAll(churchId);
-    return gateways.length === 0 ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
+    return (gateways as any[]).length === 0 ? "" : EncryptionHelper.decrypt((gateways as any[])[0].privateKey);
   };
 }

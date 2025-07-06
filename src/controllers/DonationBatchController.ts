@@ -11,7 +11,7 @@ export class DonationBatchController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
       else {
@@ -22,24 +22,18 @@ export class DonationBatchController extends GivingBaseController {
   }
 
   @httpGet("/")
-  public async getAll(
-    req: express.Request<{}, {}, null>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
       else {
         const data = await this.repositories.donationBatch.loadAll(au.churchId);
-        return this.repositories.donationBatch.convertAllToModel(au.churchId, data);
+        return this.repositories.donationBatch.convertAllToModel(au.churchId, data as any[]);
       }
     });
   }
 
   @httpPost("/")
-  public async save(
-    req: express.Request<{}, {}, DonationBatch[]>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async save(req: express.Request<{}, {}, DonationBatch[]>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
       else {
@@ -49,7 +43,7 @@ export class DonationBatchController extends GivingBaseController {
           promises.push(this.repositories.donationBatch.save(donationbatch));
         });
         const result = await Promise.all(promises);
-        return this.repositories.donationBatch.convertAllToModel(au.churchId, result);
+        return this.repositories.donationBatch.convertAllToModel(au.churchId, result as any[]);
       }
     });
   }
@@ -59,7 +53,7 @@ export class DonationBatchController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
       else {

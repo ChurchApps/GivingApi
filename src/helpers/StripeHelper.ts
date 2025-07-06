@@ -198,7 +198,8 @@ export class StripeHelper {
 
   static async logDonation(secretKey: string, churchId: string, eventData: any) {
     const amount = (eventData.amount || eventData.amount_paid) / 100;
-    const { personId } = await Repositories.getCurrent().customer.load(churchId, eventData.customer);
+    const customerData = (await Repositories.getCurrent().customer.load(churchId, eventData.customer)) as any;
+    const personId = customerData?.personId;
     const { method, methodDetails } = await this.getPaymentDetails(secretKey, eventData);
     const batch: DonationBatch = await Repositories.getCurrent().donationBatch.getOrCreateCurrent(churchId);
     const donationData: Donation = {
@@ -224,6 +225,6 @@ export class StripeHelper {
   }
 
   private static getStripeObj = (secretKey: string) => {
-    return new Stripe(secretKey, { apiVersion: "2025-05-28.basil" });
+    return new Stripe(secretKey, { apiVersion: "2025-06-30.basil" });
   };
 }

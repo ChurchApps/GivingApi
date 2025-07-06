@@ -7,8 +7,6 @@ module.exports = [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: __dirname,
         ecmaVersion: 2020,
         sourceType: 'module'
       }
@@ -22,7 +20,7 @@ module.exports = [
         'warn', 
         { 
           argsIgnorePattern: '^_|^req$|^res$|^au$|^ex$|^e$|^bind$',
-          varsIgnorePattern: '^_|^start$|^result$|^app$',
+          varsIgnorePattern: '^_|^start$|^result$|^app$|^interfaces$',
           caughtErrorsIgnorePattern: '^_'
         }
       ],

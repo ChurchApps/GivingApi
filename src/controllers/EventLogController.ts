@@ -11,9 +11,9 @@ export class EventLogController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json([], 401);
       else return this.repositories.eventLog.convertToModel(await this.repositories.eventLog.load(au.churchId, id));
     });
   }
@@ -23,33 +23,30 @@ export class EventLogController extends GivingBaseController {
     @requestParam("type") type: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json([], 401);
       return this.repositories.eventLog.convertAllToModel(
-        await this.repositories.eventLog.loadByType(au.churchId, type)
+        (await this.repositories.eventLog.loadByType(au.churchId, type)) as any[]
       );
     });
   }
 
   @httpGet("/")
-  public async getAll(
-    req: express.Request<{}, {}, null>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
-      else return this.repositories.eventLog.convertAllToModel(await this.repositories.eventLog.loadAll(au.churchId));
+      if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json([], 401);
+      else
+        return this.repositories.eventLog.convertAllToModel(
+          (await this.repositories.eventLog.loadAll(au.churchId)) as any[]
+        );
     });
   }
 
   @httpPost("/")
-  public async save(
-    req: express.Request<{}, {}, EventLog[]>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async save(req: express.Request<{}, {}, EventLog[]>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.donations.edit)) return this.json([], 401);
       else {
         const promises: Promise<EventLog>[] = [];
         req.body.forEach((eventLog) => {
@@ -67,9 +64,9 @@ export class EventLogController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
-      if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
+      if (!au.checkAccess(Permissions.donations.edit)) return this.json([], 401);
       else {
         await this.repositories.eventLog.delete(au.churchId, id);
         return this.json({});

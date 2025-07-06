@@ -15,33 +15,30 @@ export class DonateController extends GivingBaseController {
   public async log(
     req: express.Request<{}, {}, { donation: Donation; fundData: { id: string; amount: number } }>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapperAnon(req, res, async () => {
       const secretKey = await this.loadPrivateKey(req.body.donation.churchId);
       const { donation, fundData } = req.body;
       if (secretKey === "") return this.json({}, 401);
-      this.logDonation(donation, [fundData]);
+      return this.logDonation(donation, [fundData]);
     });
   }
 
   @httpPost("/webhook/:provider")
-  public async webhook(
-    req: express.Request<{}, {}, null>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async webhook(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapperAnon(req, res, async () => {
       const churchId = req.query.churchId?.toString();
       if (!churchId) return this.json({ error: "Missing churchId parameter" }, 400);
 
-      const gateways = await this.repositories.gateway.loadAll(churchId);
+      const gateways = (await this.repositories.gateway.loadAll(churchId)) as any[];
       if (!gateways.length) return this.json({ error: "No gateway configured" }, 401);
 
-      const secretKey = EncryptionHelper.decrypt(gateways[0].privateKey);
+      const secretKey = EncryptionHelper.decrypt((gateways as any[])[0].privateKey);
       if (secretKey === "") return this.json({ error: "Invalid gateway configuration" }, 401);
 
       const sig = req.headers["stripe-signature"]?.toString();
       if (!sig) return this.json({ error: "Missing stripe signature" }, 400);
-      const webhookKey = EncryptionHelper.decrypt(gateways[0].webhookKey);
+      const webhookKey = EncryptionHelper.decrypt((gateways as any[])[0].webhookKey);
       const stripeEvent: Stripe.Event = await StripeHelper.verifySignature(secretKey, req, sig, webhookKey);
       const eventData = stripeEvent.data.object as any; // https://github.com/stripe/stripe-node/issues/758
       const subscriptionEvent = eventData.subscription || eventData.description?.toLowerCase().includes("subscription");
@@ -50,11 +47,12 @@ export class DonateController extends GivingBaseController {
       if (!existingEvent) await StripeHelper.logEvent(churchId, stripeEvent, eventData);
       if (!existingEvent && (stripeEvent.type === "charge.succeeded" || stripeEvent.type === "invoice.paid"))
         await StripeHelper.logDonation(secretKey, churchId, eventData);
+      return this.json({}, 200);
     });
   }
 
   @httpPost("/charge")
-  public async charge(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async charge(req: express.Request<any>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const donationData = req.body;
       const churchId = au.churchId || donationData.churchId;
@@ -89,7 +87,7 @@ export class DonateController extends GivingBaseController {
   }
 
   @httpPost("/subscribe")
-  public async subscribe(req: express.Request<any>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async subscribe(req: express.Request<any>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const {
         id,
@@ -119,8 +117,8 @@ export class DonateController extends GivingBaseController {
         interval,
         metadata: { notes }
       };
-      const gateways = await this.repositories.gateway.loadAll(churchId);
-      paymentData.productId = gateways[0].productId;
+      const gateways = (await this.repositories.gateway.loadAll(churchId)) as any[];
+      paymentData.productId = (gateways as any[])[0].productId;
 
       const stripeSubscription = await StripeHelper.createSubscription(secretKey, paymentData);
       const subscription: Subscription = { id: stripeSubscription.id, churchId, personId: person.id, customerId };
@@ -146,7 +144,7 @@ export class DonateController extends GivingBaseController {
   public async calculateFee(
     req: express.Request<{}, {}, { type: string; amount: number }>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapperAnon(req, res, async () => {
       const { type, amount } = req.body;
       const { churchId } = req.query;
@@ -281,8 +279,8 @@ export class DonateController extends GivingBaseController {
   };
 
   private loadPrivateKey = async (churchId: string) => {
-    const gateways = await this.repositories.gateway.loadAll(churchId);
-    return gateways.length === 0 ? "" : EncryptionHelper.decrypt(gateways[0].privateKey);
+    const gateways = (await this.repositories.gateway.loadAll(churchId)) as any[];
+    return (gateways as any[]).length === 0 ? "" : EncryptionHelper.decrypt((gateways as any[])[0].privateKey);
   };
 
   private getCreditCardFees = async (amount: number, churchId: string) => {
@@ -329,10 +327,7 @@ export class DonateController extends GivingBaseController {
   };
 
   @httpPost("/captcha-verify")
-  public async captchaVerify(
-    req: express.Request<{}, {}, { token: string }>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async captchaVerify(req: express.Request<{}, {}, { token: string }>, res: express.Response): Promise<unknown> {
     return this.actionWrapperAnon(req, res, async () => {
       try {
         // detecting if its a bot or a human

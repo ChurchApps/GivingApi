@@ -9,10 +9,7 @@ import path from "path";
 @controller("/donations")
 export class DonationController extends GivingBaseController {
   @httpGet("/testEmail")
-  public async testEmail(
-    req: express.Request<{}, {}, null>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async testEmail(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapperAnon(req, res, async () => {
       let error = "";
       try {
@@ -32,10 +29,7 @@ export class DonationController extends GivingBaseController {
   }
 
   @httpGet("/summary")
-  public async getSummary(
-    req: express.Request<{}, {}, null>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async getSummary(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json({}, 401);
       else {
@@ -44,19 +38,19 @@ export class DonationController extends GivingBaseController {
         const type = req.query.type?.toString() || "";
         if (type === "person") {
           const result = await this.repositories.donation.loadPersonBasedSummary(au.churchId, startDate, endDate);
-          return this.repositories.donation.convertAllToPersonSummary(au.churchId, result);
+          return this.repositories.donation.convertAllToPersonSummary(au.churchId, result as any[]);
         }
         const result = await this.repositories.donation.loadSummary(au.churchId, startDate, endDate);
-        return this.repositories.donation.convertAllToSummary(au.churchId, result);
+        return this.repositories.donation.convertAllToSummary(au.churchId, result as any[]);
       }
     });
   }
 
   @httpGet("/my")
-  public async getMy(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+  public async getMy(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const result = await this.repositories.donation.loadByPersonId(au.churchId, au.personId);
-      return this.repositories.donation.convertAllToModel(au.churchId, result);
+      return this.repositories.donation.convertAllToModel(au.churchId, result as any[]);
     });
   }
 
@@ -65,7 +59,7 @@ export class DonationController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
       else {
@@ -77,10 +71,7 @@ export class DonationController extends GivingBaseController {
   }
 
   @httpGet("/")
-  public async getAll(
-    req: express.Request<{}, {}, null>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       const personId = req.query?.personId?.toString() || "";
       if (!au.checkAccess(Permissions.donations.view) && personId !== au.personId) return this.json({}, 401);
@@ -90,16 +81,13 @@ export class DonationController extends GivingBaseController {
           result = await this.repositories.donation.loadByBatchId(au.churchId, req.query.batchId.toString());
         else if (personId) result = await this.repositories.donation.loadByPersonId(au.churchId, personId);
         else result = await this.repositories.donation.loadAll(au.churchId);
-        return this.repositories.donation.convertAllToModel(au.churchId, result);
+        return this.repositories.donation.convertAllToModel(au.churchId, result as any[] as any[]);
       }
     });
   }
 
   @httpPost("/")
-  public async save(
-    req: express.Request<{}, {}, Donation[]>,
-    res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  public async save(req: express.Request<{}, {}, Donation[]>, res: express.Response): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
       else {
@@ -109,7 +97,7 @@ export class DonationController extends GivingBaseController {
           promises.push(this.repositories.donation.save(donation));
         });
         const result = await Promise.all(promises);
-        return this.repositories.donation.convertAllToModel(au.churchId, result);
+        return this.repositories.donation.convertAllToModel(au.churchId, result as any[] as any[]);
       }
     });
   }
@@ -119,7 +107,7 @@ export class DonationController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<interfaces.IHttpActionResult> {
+  ): Promise<unknown> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
       else {
