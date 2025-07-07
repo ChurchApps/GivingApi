@@ -48,12 +48,19 @@ export class DonationBatchRepository {
 
   public loadAll(churchId: string) {
     const sql =
-      "SELECT *" +
-      " , IFNULL((SELECT Count(*) FROM donations WHERE batchId = db.Id),0) AS donationCount" +
-      " , IFNULL((SELECT SUM(amount) FROM donations WHERE batchId = db.Id),0) AS totalAmount" +
-      " FROM donationBatches db" +
-      " WHERE db.churchId = ?";
-    return DB.query(sql, [churchId]);
+      "SELECT db.*, " +
+      "IFNULL(d.donationCount, 0) AS donationCount, " +
+      "IFNULL(d.totalAmount, 0) AS totalAmount " +
+      "FROM donationBatches db " +
+      "LEFT JOIN (" +
+      "  SELECT batchId, COUNT(*) AS donationCount, SUM(amount) AS totalAmount " +
+      "  FROM donations " +
+      "  WHERE churchId = ? " +
+      "  GROUP BY batchId" +
+      ") d ON db.id = d.batchId " +
+      "WHERE db.churchId = ? " +
+      "ORDER BY db.batchDate DESC";
+    return DB.query(sql, [churchId, churchId]);
   }
 
   public convertToModel(churchId: string, data: any) {

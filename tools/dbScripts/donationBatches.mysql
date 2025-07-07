@@ -6,5 +6,6 @@ CREATE TABLE `donationBatches` (
   `name` varchar(50) DEFAULT NULL,
   `batchDate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`)
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  KEY `idx_church_id` (`churchId`)
 ) ENGINE=InnoDB;
