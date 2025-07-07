@@ -34,8 +34,32 @@ export const init = async () => {
         expApp.use((req, res, next) => {
             const contentType = req.headers["content-type"] || "";
 
-            // Skip parsing for webhook endpoint - leave raw body for Stripe signature verification
+            // Special handling for webhook endpoint - ensure body remains as Buffer
             if (req.path.startsWith("/donate/webhook")) {
+                // Convert various body formats to Buffer for Stripe signature verification
+                if (Buffer.isBuffer(req.body)) {
+                    // Already a Buffer, keep as is
+                    return next();
+                } else if (req.body && req.body.type === "Buffer" && Array.isArray(req.body.data)) {
+                    // Convert Buffer-like object to actual Buffer
+                    req.body = Buffer.from(req.body.data);
+                    return next();
+                } else if (typeof req.body === "string") {
+                    // Convert string to Buffer
+                    req.body = Buffer.from(req.body, "utf8");
+                    return next();
+                } else if (req.body) {
+                    // If body exists but is not a Buffer, try to convert to string then Buffer
+                    try {
+                        const bodyString = JSON.stringify(req.body);
+                        req.body = Buffer.from(bodyString, "utf8");
+                    } catch (_e) {
+                        req.body = Buffer.alloc(0);
+                    }
+                    return next();
+                }
+                // If no body, create empty Buffer
+                req.body = Buffer.alloc(0);
                 return next();
             }
 
