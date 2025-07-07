@@ -12,7 +12,7 @@ export class PaymentMethodController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<unknown> {
+  ): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       const secretKey = await this.loadPrivateKey(au.churchId);
       const permission = secretKey && (au.checkAccess(Permissions.donations.view) || id === au.personId);
@@ -25,7 +25,7 @@ export class PaymentMethodController extends GivingBaseController {
   }
 
   @httpPost("/addcard")
-  public async addCard(req: express.Request<any>, res: express.Response): Promise<unknown> {
+  public async addCard(req: express.Request<any>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       const { id, personId, customerId, email, name, churchId } = req.body;
       const cId = au?.churchId || churchId;
@@ -67,7 +67,7 @@ export class PaymentMethodController extends GivingBaseController {
   }
 
   @httpPost("/addbankaccount")
-  public async addBankAccount(req: express.Request<any>, res: express.Response): Promise<unknown> {
+  public async addBankAccount(req: express.Request<any>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       const { id, personId, customerId, email, name } = req.body;
       const secretKey = await this.loadPrivateKey(au.churchId);
@@ -132,7 +132,7 @@ export class PaymentMethodController extends GivingBaseController {
     @requestParam("customerid") customerId: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<unknown> {
+  ): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       const secretKey = await this.loadPrivateKey(au.churchId);
       const permission =

@@ -69,11 +69,11 @@ export class SubscriptionFundsRepository {
       " WHERE subscriptionFunds.churchId=? AND subscriptionFunds.subscriptionId=?";
     const subscriptionFund = await DB.query(sql, [churchId, subscriptionId]);
     if (subscriptionFund && subscriptionFund[0].removed === false) {
-      const { removed: _removed, ...sf } = subscriptionFund[0];
+      const { removed: _removed, ...sf } = (subscriptionFund as any)[0];
       result = [sf];
     } else {
       const generalFund = await Repositories.getCurrent().fund.getOrCreateGeneral(churchId);
-      const { removed: _removed, ...sf } = subscriptionFund[0];
+      const { removed: _removed, ...sf } = (subscriptionFund as any)[0];
       sf.fundId = generalFund.id;
       sf.name = generalFund.name;
       result = [sf];

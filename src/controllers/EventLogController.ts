@@ -11,7 +11,7 @@ export class EventLogController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<unknown> {
+  ): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json([], 401);
       else return this.repositories.eventLog.convertToModel(await this.repositories.eventLog.load(au.churchId, id));
@@ -23,7 +23,7 @@ export class EventLogController extends GivingBaseController {
     @requestParam("type") type: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<unknown> {
+  ): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json([], 401);
       return this.repositories.eventLog.convertAllToModel(
@@ -33,7 +33,7 @@ export class EventLogController extends GivingBaseController {
   }
 
   @httpGet("/")
-  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
+  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.viewSummary)) return this.json([], 401);
       else
@@ -44,7 +44,7 @@ export class EventLogController extends GivingBaseController {
   }
 
   @httpPost("/")
-  public async save(req: express.Request<{}, {}, EventLog[]>, res: express.Response): Promise<unknown> {
+  public async save(req: express.Request<{}, {}, EventLog[]>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json([], 401);
       else {
@@ -64,7 +64,7 @@ export class EventLogController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<unknown> {
+  ): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json([], 401);
       else {

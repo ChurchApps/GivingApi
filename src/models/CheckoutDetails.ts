@@ -1,6 +1,6 @@
 export class CheckoutDetails {
-  public churchId: string;
-  public amount: number;
-  public successUrl: string;
-  public cancelUrl: string;
+  public churchId: string = "";
+  public amount: number = 0;
+  public successUrl: string = "";
+  public cancelUrl: string = "";
 }

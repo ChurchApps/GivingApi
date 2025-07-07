@@ -1,5 +1,5 @@
 export class EventLog {
-  public id: string;
+  public id: string = "";
   public churchId?: string;
   public customerId?: string;
   public personId?: string;

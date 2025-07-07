@@ -21,7 +21,7 @@ export class Repositories {
   public subscription: SubscriptionRepository;
   public subscriptionFund: SubscriptionFundsRepository;
 
-  private static _current: Repositories = null;
+  private static _current: Repositories = null as any;
   public static getCurrent = () => {
     if (Repositories._current === null) Repositories._current = new Repositories();
     return Repositories._current;

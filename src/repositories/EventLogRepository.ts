@@ -5,7 +5,7 @@ import { EventLog } from "../models";
 @injectable()
 export class EventLogRepository {
   public async save(eventLog: EventLog) {
-    const event = await this.load(eventLog.churchId, eventLog.id);
+    const event = await this.load(eventLog.churchId as string, eventLog.id);
     return event ? this.update(eventLog) : this.create(eventLog);
   }
 

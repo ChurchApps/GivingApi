@@ -15,9 +15,9 @@ export class DonateController extends GivingBaseController {
   public async log(
     req: express.Request<{}, {}, { donation: Donation; fundData: { id: string; amount: number } }>,
     res: express.Response
-  ): Promise<unknown> {
+  ): Promise<any> {
     return this.actionWrapperAnon(req, res, async () => {
-      const secretKey = await this.loadPrivateKey(req.body.donation.churchId);
+      const secretKey = await this.loadPrivateKey(req.body.donation.churchId as string);
       const { donation, fundData } = req.body;
       if (secretKey === "") return this.json({}, 401);
       return this.logDonation(donation, [fundData]);
@@ -25,7 +25,7 @@ export class DonateController extends GivingBaseController {
   }
 
   @httpPost("/webhook/:provider")
-  public async webhook(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
+  public async webhook(req: express.Request<{}, {}, null>, res: express.Response): Promise<any> {
     return this.actionWrapperAnon(req, res, async () => {
       const churchId = req.query.churchId?.toString();
       if (!churchId) return this.json({ error: "Missing churchId parameter" }, 400);
@@ -52,7 +52,7 @@ export class DonateController extends GivingBaseController {
   }
 
   @httpPost("/charge")
-  public async charge(req: express.Request<any>, res: express.Response): Promise<unknown> {
+  public async charge(req: express.Request<any>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       const donationData = req.body;
       const churchId = au.churchId || donationData.churchId;
@@ -87,7 +87,7 @@ export class DonateController extends GivingBaseController {
   }
 
   @httpPost("/subscribe")
-  public async subscribe(req: express.Request<any>, res: express.Response): Promise<unknown> {
+  public async subscribe(req: express.Request<any>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       const {
         id,
@@ -144,12 +144,13 @@ export class DonateController extends GivingBaseController {
   public async calculateFee(
     req: express.Request<{}, {}, { type: string; amount: number }>,
     res: express.Response
-  ): Promise<unknown> {
+  ): Promise<any> {
     return this.actionWrapperAnon(req, res, async () => {
       const { type, amount } = req.body;
       const { churchId } = req.query;
-      if (type === "creditCard") return { calculatedFee: await this.getCreditCardFees(amount, churchId?.toString()) };
-      else if (type === "ach") return { calculatedFee: await this.getACHFees(amount, churchId?.toString()) };
+      if (type === "creditCard")
+        return { calculatedFee: await this.getCreditCardFees(amount, churchId?.toString() as string) };
+      else if (type === "ach") return { calculatedFee: await this.getACHFees(amount, churchId?.toString() as string) };
     });
   }
 
@@ -170,7 +171,7 @@ export class DonateController extends GivingBaseController {
       if (donationType === "recurring") {
         const startDate = dayjs(billingCycleAnchor).format("MMM D, YYYY");
         contentRows.push(
-          `<tr>${index === 0 ? `<td style="font-size: 15px" rowspan="${funds.length}">${interval.interval_count} ${interval.interval}<BR><span style="font-size: 13px">(from ${startDate})</span></td>` : ""}<td style="font-size: 15px; text-overflow: ellipsis; overflow: hidden;">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
+          `<tr>${index === 0 ? `<td style="font-size: 15px" rowspan="${funds.length}">${interval!.interval_count} ${interval!.interval}<BR><span style="font-size: 13px">(from ${startDate})</span></td>` : ""}<td style="font-size: 15px; text-overflow: ellipsis; overflow: hidden;">${fund.name}</td><td style="font-size: 15px">$${fund.amount}</td></tr>`
         );
       } else {
         contentRows.push(
@@ -179,7 +180,7 @@ export class DonateController extends GivingBaseController {
       }
     });
 
-    const transactionFee = amount - totalFundAmount;
+    const transactionFee = amount! - totalFundAmount;
 
     const domain =
       Environment.appEnv === "staging" ? `${church.subDomain}.staging.b1.church` : `${church.subDomain}.b1.church`;
@@ -254,7 +255,7 @@ export class DonateController extends GivingBaseController {
       Environment.supportEmail,
       to,
       title,
-      church.churchURL,
+      church.churchURL as string,
       "Thank You For Donating",
       contents,
       "ChurchEmailTemplate.html"
@@ -262,7 +263,9 @@ export class DonateController extends GivingBaseController {
   };
 
   private logDonation = async (donationData: Donation, fundData: FundDonation[]) => {
-    const batch: DonationBatch = await this.repositories.donationBatch.getOrCreateCurrent(donationData.churchId);
+    const batch: DonationBatch = await this.repositories.donationBatch.getOrCreateCurrent(
+      donationData.churchId as string
+    );
     donationData.batchId = batch.id;
     const donation = await this.repositories.donation.save(donationData);
     const promises: Promise<FundDonation>[] = [];
@@ -327,7 +330,7 @@ export class DonateController extends GivingBaseController {
   };
 
   @httpPost("/captcha-verify")
-  public async captchaVerify(req: express.Request<{}, {}, { token: string }>, res: express.Response): Promise<unknown> {
+  public async captchaVerify(req: express.Request<{}, {}, { token: string }>, res: express.Response): Promise<any> {
     return this.actionWrapperAnon(req, res, async () => {
       try {
         // detecting if its a bot or a human

@@ -23,7 +23,7 @@ export class DonationBatchRepository {
 
   private async create(donationBatch: DonationBatch) {
     donationBatch.id = UniqueIdHelper.shortId();
-    const batchDate = DateHelper.toMysqlDate(donationBatch.batchDate);
+    const batchDate = DateHelper.toMysqlDate(donationBatch.batchDate as Date);
     const sql = "INSERT INTO donationBatches (id, churchId, name, batchDate) VALUES (?, ?, ?, ?);";
     const params = [donationBatch.id, donationBatch.churchId, donationBatch.name, batchDate];
     await DB.query(sql, params);
@@ -31,7 +31,7 @@ export class DonationBatchRepository {
   }
 
   private async update(donationBatch: DonationBatch) {
-    const batchDate = DateHelper.toMysqlDate(donationBatch.batchDate);
+    const batchDate = DateHelper.toMysqlDate(donationBatch.batchDate as Date);
     const sql = "UPDATE donationBatches SET name=?, batchDate=? WHERE id=? and churchId=?";
     const params = [donationBatch.name, batchDate, donationBatch.id, donationBatch.churchId];
     await DB.query(sql, params);

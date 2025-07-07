@@ -6,13 +6,13 @@ import { UniqueIdHelper, DateHelper, ArrayHelper } from "@churchapps/apihelper";
 @injectable()
 export class DonationRepository {
   public save(donation: Donation) {
-    if (donation.personId === "") donation.personId = null;
+    if (donation.personId === "") donation.personId = null as any;
     return donation.id ? this.update(donation) : this.create(donation);
   }
 
   private async create(donation: Donation) {
     donation.id = UniqueIdHelper.shortId();
-    const donationDate = DateHelper.toMysqlDate(donation.donationDate);
+    const donationDate = DateHelper.toMysqlDate(donation.donationDate as Date);
     const sql =
       "INSERT INTO donations (id, churchId, batchId, personId, donationDate, amount, method, methodDetails, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
     const params = [
@@ -31,7 +31,7 @@ export class DonationRepository {
   }
 
   private async update(donation: Donation) {
-    const donationDate = DateHelper.toMysqlDate(donation.donationDate);
+    const donationDate = DateHelper.toMysqlDate(donation.donationDate as Date);
     const sql =
       "UPDATE donations SET batchId=?, personId=?, donationDate=?, amount=?, method=?, methodDetails=?, notes=? WHERE id=? and churchId=?";
     const params = [
@@ -147,7 +147,7 @@ export class DonationRepository {
         weekRow = { week, donations: [] };
         result.push(weekRow);
       }
-      weekRow.donations.push({ fund: { name: d.fundName }, totalAmount: d.totalAmount });
+      weekRow.donations!.push({ fund: { name: d.fundName }, totalAmount: d.totalAmount });
     });
     return result;
   }
@@ -199,7 +199,7 @@ export class DonationRepository {
         });
         funds.push({ [fundBasedRecords[0].fundName]: checkDecimals(totalFundAmount) });
       });
-      result.push({ personId: null, totalAmount: checkDecimals(totalAmount), funds });
+      result.push({ personId: null as any, totalAmount: checkDecimals(totalAmount), funds });
     }
 
     return result;

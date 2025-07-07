@@ -7,7 +7,7 @@ import { Permissions } from "../helpers/Permissions";
 @controller("/funddonations")
 export class FundDonationController extends GivingBaseController {
   @httpGet("/my")
-  public async getMy(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
+  public async getMy(req: express.Request<{}, {}, null>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       return this.repositories.fundDonation.loadByPersonId(au.churchId, au.personId);
     });
@@ -18,7 +18,7 @@ export class FundDonationController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<unknown> {
+  ): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
       else
@@ -30,7 +30,7 @@ export class FundDonationController extends GivingBaseController {
   }
 
   @httpGet("/")
-  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<unknown> {
+  public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.view)) return this.json({}, 401);
       else {
@@ -45,7 +45,7 @@ export class FundDonationController extends GivingBaseController {
             result = await this.repositories.fundDonation.loadByFundId(au.churchId, req.query.fundId.toString());
           else {
             const startDate = new Date(req.query.startDate.toString());
-            const endDate = new Date(req.query.endDate.toString());
+            const endDate = new Date(req.query.endDate!.toString());
             result = await this.repositories.fundDonation.loadByFundIdDate(
               au.churchId,
               req.query.fundId.toString(),
@@ -58,7 +58,7 @@ export class FundDonationController extends GivingBaseController {
             result = await this.repositories.fundDonation.loadAllByDate(
               au.churchId,
               new Date(req.query.startDate.toString()),
-              new Date(req.query.endDate.toString())
+              new Date(req.query.endDate!.toString())
             );
           } else {
             result = await this.repositories.fundDonation.loadAll(au.churchId);
@@ -70,7 +70,7 @@ export class FundDonationController extends GivingBaseController {
   }
 
   @httpPost("/")
-  public async save(req: express.Request<{}, {}, FundDonation[]>, res: express.Response): Promise<unknown> {
+  public async save(req: express.Request<{}, {}, FundDonation[]>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
       else {
@@ -90,7 +90,7 @@ export class FundDonationController extends GivingBaseController {
     @requestParam("id") id: string,
     req: express.Request<{}, {}, null>,
     res: express.Response
-  ): Promise<unknown> {
+  ): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
       if (!au.checkAccess(Permissions.donations.edit)) return this.json({}, 401);
       else {
