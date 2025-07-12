@@ -14,7 +14,8 @@ let handler;
 
 const universal = async function universal(event, context) {
   try {
-    console.log('Lambda invocation:', event.httpMethod, event.path);
+    // Removed verbose logging to reduce CloudWatch costs
+    // console.log('Lambda invocation:', event.httpMethod, event.path);
     
     await checkPool();
     
